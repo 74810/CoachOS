@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../../models/cliente_model.dart';
-import '../../../../config/theme.dart';
+import '../../../../../models/cliente_model.dart';
+import '../../../../../config/theme.dart';
 
 class PerfilTab extends StatelessWidget {
   final Cliente cliente;
@@ -13,7 +13,7 @@ class PerfilTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // 1. BLOQUE DE INFORMACIÓN MÉDICA / PERSONAL
+        //BLOQUE DE INFORMACIÓN MÉDICA / PERSONAL
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -36,7 +36,7 @@ class PerfilTab extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // 2. GRÁFICA DE EVOLUCIÓN DE PESO
+        //GRÁFICA DE EVOLUCIÓN DE PESO
         const Padding(
           padding: EdgeInsets.only(left: 8, bottom: 12),
           child: Text("EVOLUCIÓN DE PESO", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
@@ -78,7 +78,6 @@ class PerfilTab extends StatelessWidget {
               borderData: FlBorderData(show: false),
               lineBarsData: [
                 LineChartBarData(
-                  // Datos simulados de peso (ej: empezó en 82kg y bajó a 79kg)
                   spots: const [FlSpot(0, 82.5), FlSpot(1, 81.2), FlSpot(2, 80.5), FlSpot(3, 79.1)],
                   isCurved: true,
                   color: AppTheme.primaryBlue,
@@ -95,7 +94,6 @@ class PerfilTab extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // 3. BLOQUE DE MEDIDAS (GRID)
         const Padding(
           padding: EdgeInsets.only(left: 8, bottom: 12),
           child: Text("MEDIDAS ACTUALES", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),

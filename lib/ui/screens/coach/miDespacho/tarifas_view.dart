@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../services/database_service.dart';
-import '../../../models/tarifa_model.dart';
-import '../../../config/theme.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/tarifa_model.dart';
+import '../../../../config/theme.dart';
 
 class TarifasView extends StatelessWidget {
   const TarifasView({super.key});
@@ -92,7 +92,6 @@ class TarifasView extends StatelessWidget {
                               Text("Gracia: ${tarifa.diasGracia} días", style: const TextStyle(color: AppTheme.mediumBlue, fontWeight: FontWeight.w600, fontSize: 13)),
                             ],
                           ),
-                          // --- NUEVAS ACCIONES: SWITCH VISIBILIDAD + TRASH ---
                           Row(
                             children: [
                               Text(tarifa.esVisible ? "Visible" : "Oculta", 
@@ -208,7 +207,6 @@ class TarifasView extends StatelessWidget {
                 ),
                 onPressed: () {
                   if (nombreController.text.isNotEmpty && precioController.text.isNotEmpty) {
-                    // Al crearla, siempre pasamos true (o dejas que el DatabaseService lo gestione)
                     DatabaseService().crearTarifa(
                       nombreController.text,
                       int.parse(precioController.text),

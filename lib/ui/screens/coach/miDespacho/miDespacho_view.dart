@@ -1,10 +1,10 @@
 import 'package:coach_os_app/config/theme.dart';
-import 'package:coach_os_app/ui/screens/miDespacho/tarifas_view.dart';
+import 'package:coach_os_app/ui/screens/coach/miDespacho/tarifas_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../services/database_service.dart';
-import '../../../models/cliente_model.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/cliente_model.dart';
 
 class DespachoView extends StatelessWidget {
   const DespachoView({super.key});
@@ -14,7 +14,6 @@ class DespachoView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // CABECERA (Sin el botón de exportar)
         const Padding(
           padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Text('Mi Despacho', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
@@ -51,7 +50,7 @@ class DespachoView extends StatelessWidget {
               return ListView(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 children: [
-                  // 1. DASHBOARD FINANCIERO
+                  //DASHBOARD FINANCIERO
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
@@ -76,7 +75,6 @@ class DespachoView extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               _StatInfo("Activos", "$totalClientes", CupertinoIcons.group_solid),
-                              // ARPU actualizado con el texto explicativo
                               _StatInfo("ARPU (Ticket Medio)", "${arpu.toStringAsFixed(0)}€", CupertinoIcons.chart_pie_fill),
                             ],
                           )
@@ -85,8 +83,6 @@ class DespachoView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // 2. HERRAMIENTAS (Rediseño 100% ancho y 50/50)
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Text("HERRAMIENTAS", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
@@ -137,7 +133,7 @@ class DespachoView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // 3. DISTRIBUCIÓN DE PLANES
+                  //DISTRIBUCIÓN DE PLANES
                   if (totalClientes > 0) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -194,8 +190,6 @@ class DespachoView extends StatelessWidget {
   }
 }
 
-// --- WIDGETS AUXILIARES ---
-
 class _StatInfo extends StatelessWidget {
   final String titulo, valor;
   final IconData icono;
@@ -218,7 +212,6 @@ class _StatInfo extends StatelessWidget {
   }
 }
 
-// Botón que ocupa el 100% del ancho (Para Tarifas)
 class _BotonHerramientaAncho extends StatelessWidget {
   final IconData icono;
   final Color color;
@@ -259,7 +252,6 @@ class _BotonHerramientaAncho extends StatelessWidget {
   }
 }
 
-// Botón que ocupa el 50% del ancho (Para QR e Interesados)
 class _BotonHerramientaMitad extends StatelessWidget {
   final IconData icono;
   final Color color;

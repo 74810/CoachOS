@@ -1,4 +1,7 @@
+import 'package:coach_os_app/config/theme.dart';
 import 'package:coach_os_app/services/auth_service.dart';
+import 'package:coach_os_app/ui/screens/registro_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LoginView extends StatefulWidget {
@@ -76,7 +79,37 @@ class _LoginViewState extends State<LoginView> {
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                   child: const Text('Iniciar Sesión', style: TextStyle(color: Colors.white)),
                 ),
-              )
+              ),
+
+              // Busca esta Row al final de tu login_view.dart y sustitúyela:
+const SizedBox(height: 30),
+
+// BOTÓN DE REGISTRO CORREGIDO (CON FLEXIBLE)
+Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    const Text("¿No tienes cuenta? ", style: TextStyle(color: Colors.grey)),
+    // Envolvemos el GestureDetector en un Flexible para evitar el overflow
+    Flexible(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            CupertinoPageRoute(builder: (context) => const RegistroEntrenadorView()),
+          );
+        },
+        child: const Text(
+          "Regístrate como Entrenador",
+          textAlign: TextAlign.center, // Centramos el texto si baja de línea
+          style: TextStyle(
+            color: AppTheme.secondaryOrange, // Tu color naranja
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    ),
+  ],
+),
             ],
           ),
         ),

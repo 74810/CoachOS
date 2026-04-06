@@ -1,9 +1,9 @@
 import 'package:coach_os_app/config/theme.dart';
-import 'package:coach_os_app/ui/screens/cliente_detalle/clienteDetalle_view.dart';
+import 'package:coach_os_app/ui/screens/coach/clienteDetalle/clienteDetalle_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../models/cliente_model.dart';
-import '../../services/database_service.dart';
+import '../../../models/cliente_model.dart';
+import '../../../services/database_service.dart';
 
 class ClientesView extends StatefulWidget {
   const ClientesView({super.key});
@@ -62,7 +62,7 @@ class _ClientesViewState extends State<ClientesView> {
                                     c.apellidos.toLowerCase().contains(_searchQuery);
                 final matchSexo = _filtroSexo == 'Todos' || c.sexo == _filtroSexo;
                 final matchSuscripcion = !_filtroSoloPagados || c.cuotaPagada == true;
-                final matchEdad = c.edad >= _filtroRangoEdad.start && c.edad <= _filtroRangoEdad.end;
+                final matchEdad = c.edad == 0 || (c.edad >= _filtroRangoEdad.start && c.edad <= _filtroRangoEdad.end);
 
                 return matchNombre && matchSexo && matchSuscripcion && matchEdad;
               }).toList();

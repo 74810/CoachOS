@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Cliente {
   final String id;
   final String nombre;
@@ -10,10 +12,9 @@ class Cliente {
   final String sexo;
   final String lesionesPrevias;
   final String patologias;
-  
-  // En base de datos están como String
   final String ultimoMensaje;
-  final String fechaUltimoMensaje;
+  // CAMBIO 1: Ahora es de tipo DateTime para poder ordenar los chats correctamente
+  final DateTime fechaUltimoMensaje; 
   final int precioTarifa;
   final String tipoTarifa;
 
@@ -36,6 +37,18 @@ class Cliente {
   });
 
   factory Cliente.fromFirestore(Map<String, dynamic> data, String id) {
+    // CAMBIO 2: Conversor inteligente de fechas (Timestamp de Firebase a DateTime de Dart)
+    DateTime fechaParseada = DateTime.fromMillisecondsSinceEpoch(0);
+    var fechaData = data['fecha_ultimo_mensaje'];
+    
+    if (fechaData != null) {
+      if (fechaData is Timestamp) {
+        fechaParseada = fechaData.toDate();
+      } else if (fechaData is String && fechaData.isNotEmpty) {
+        fechaParseada = DateTime.tryParse(fechaData) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      }
+    }
+
     return Cliente(
       id: id,
       nombre: data['nombre'] ?? '',
@@ -44,18 +57,18 @@ class Cliente {
       telefono: data['telefono'] ?? '',
       estado: data['estado'] ?? 'Activo',
       cuotaPagada: data['cuota_pagada'] ?? false,
-      entrenadorId: data['entrenador_id'] ?? '', // <--- Cambiado para coincidir con el inyector
+      entrenadorId: data['entrenador_id'] ?? '',
       sexo: data['sexo'] ?? '',
       lesionesPrevias: data['lesiones_previas'] ?? '',
       patologias: data['patologias'] ?? '',
       ultimoMensaje: data['ultimo_mensaje'] ?? '',
-      fechaUltimoMensaje: data['fecha_ultimo_mensaje'] ?? '',
+      fechaUltimoMensaje: fechaParseada, // Asignamos la fecha parseada
       precioTarifa: data['precio_tarifa'] ?? 0,
       tipoTarifa: data['tipo_tarifa'] ?? '',
     );
   }
 
-double get precioTarifaDouble {
+  double get precioTarifaDouble {
     return precioTarifa.toDouble();
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../models/cliente_model.dart';
-import '../../../config/theme.dart';
+import '../../../../models/cliente_model.dart';
+import '../../../../config/theme.dart';
 import 'tabs/perfil_tab.dart';
 import 'tabs/entreno_tab.dart';
 import 'tabs/dieta_tab.dart';
-import '../chats/chat_view.dart'; 
+import '../../compartidos/chats/chat_view.dart'; 
 
 class ClienteDetalleView extends StatefulWidget {
   final Cliente cliente;
@@ -19,23 +19,23 @@ class ClienteDetalleView extends StatefulWidget {
 class _ClienteDetalleViewState extends State<ClienteDetalleView> {
   int _indiceSeleccionado = 0; // 0: Perfil, 1: Entreno, 2: Dieta, 3: Revisión, 4: Chat
 
-String get _estadoSuscripcion {
+  String get _estadoSuscripcion {
     if (widget.cliente.cuotaPagada) return 'activo';
 
     try {
-      if (widget.cliente.fechaUltimoMensaje.isEmpty) return 'inactivo';
+      // CORRECCIÓN 1: Comprobar si la fecha es la que pusimos por defecto (año 1970/epoch 0)
+      if (widget.cliente.fechaUltimoMensaje.millisecondsSinceEpoch == 0) return 'inactivo';
 
-      DateTime fechaCaducidad = DateTime.parse(widget.cliente.fechaUltimoMensaje);
+      // CORRECCIÓN 2: Ya no hace falta hacer un .parse() porque ya es un DateTime real
+      DateTime fechaCaducidad = widget.cliente.fechaUltimoMensaje;
       final diasDesdeCaducidad = DateTime.now().difference(fechaCaducidad).inDays;
 
-      // 🔥 USAMOS LOS DÍAS DE GRACIA REALES (suponiendo que lo añadimos al modelo Cliente)
-      // Si no, podemos usar un valor que el entrenador configure en "Ajustes"
-      int margenEntrenador = 3; // Aquí leeríamos de la tarifa del cliente
+      int margenEntrenador = 3; 
 
       if (diasDesdeCaducidad <= margenEntrenador) {
-        return 'aviso'; // NARANJA
+        return 'aviso';
       } else {
-        return 'inactivo'; // ROJO
+        return 'inactivo';
       }
     } catch (e) {
       return 'inactivo';
@@ -47,7 +47,7 @@ String get _estadoSuscripcion {
     return Scaffold(
       backgroundColor: AppTheme.lightBlue,
       
-      // 1. CABECERA PERSONALIZADA CON SEMÁFORO
+      // CABECERA PERSONALIZADA CON SEMÁFORO
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -77,7 +77,7 @@ String get _estadoSuscripcion {
         ),
       ),
       
-      // 2. MENÚ INFERIOR (Sub-navegación del cliente)
+      //MENÚ INFERIOR
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _indiceSeleccionado,
         onTap: (index) => setState(() => _indiceSeleccionado = index),
@@ -97,7 +97,7 @@ String get _estadoSuscripcion {
         ],
       ),
 
-      // 3. CUERPO PRINCIPAL (Cambia según la pestaña elegida)
+      //CUERPO PRINCIPAL
       body: SafeArea(
         child: _construirCuerpoPestana(),
       ),
@@ -111,12 +111,13 @@ String get _estadoSuscripcion {
       case 1: return EntrenoTab(cliente: widget.cliente);
       case 2: return DietaTab(cliente: widget.cliente);
       case 3: return const Center(child: Text("Módulo de Revisiones en construcción", style: TextStyle(color: Colors.grey)));
-      case 4: return ChatView(clienteId: widget.cliente.id, nombreCliente: widget.cliente.nombre, esPantallaCompleta: false);
+      // CORRECCIÓN 3: Ajuste de variables a receptorId y nombreReceptor
+      case 4: return ChatView(receptorId: widget.cliente.id, nombreReceptor: widget.cliente.nombre, esPantallaCompleta: false);
       default: return PerfilTab(cliente: widget.cliente);
     }
   }
 
-  // --- WIDGET DEL SEMÁFORO DE SUSCRIPCIÓN ---
+  //WIDGET DEL SEMÁFORO DE SUSCRIPCIÓN
   Widget _buildSemaforo(String estado) {
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -4,7 +4,7 @@ class Tarifa {
   final int precio;
   final String descripcion;
   final int diasGracia;
-  final bool esVisible; // <--- 1. Definición del campo
+  final bool esVisible; 
 
   Tarifa({
     required this.id,
@@ -12,10 +12,10 @@ class Tarifa {
     required this.precio,
     required this.descripcion,
     required this.diasGracia,
-    this.esVisible = true, // <--- 2. Constructor con valor por defecto
+    this.esVisible = true, 
   });
 
-  // 3. Método para convertir de Firebase a Objeto Dart
+  //Método para convertir de Firebase a Objeti Tarifa
   factory Tarifa.fromFirestore(Map<String, dynamic> data, String id) {
   return Tarifa(
     id: id,
@@ -27,14 +27,14 @@ class Tarifa {
   );
 }
 
-  // 5. Método para convertir de Objeto Dart a Firebase
+  //Método para convertir de Objeto Dart a Firebase Tarifa
   Map<String, dynamic> toFirestore() {
     return {
       'nombre': nombre,
       'precio': precio,
       'descripcion': descripcion,
-      'diasGracia': diasGracia, // Asegúrate de que coincida con DatabaseService
-      'esVisible': esVisible,    // <--- AÑADIR ESTO PARA ACTUALIZACIONES
+      'diasGracia': diasGracia,
+      'esVisible': esVisible, 
     };
   }
 }

@@ -1,9 +1,9 @@
-import 'package:coach_os_app/ui/screens/chats/chat_view.dart';
+import 'package:coach_os_app/ui/screens/compartidos/chats/chat_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../services/database_service.dart';
-import '../../../models/cliente_model.dart';
-import '../../../config/theme.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/cliente_model.dart';
+import '../../../../config/theme.dart';
 
 class ChatsView extends StatefulWidget {
   const ChatsView({super.key});
@@ -20,7 +20,6 @@ class _ChatsViewState extends State<ChatsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // CABECERA
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Row(
@@ -36,7 +35,6 @@ class _ChatsViewState extends State<ChatsView> {
           ),
         ),
         
-        // BUSCADOR
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: CupertinoSearchTextField(
@@ -46,23 +44,19 @@ class _ChatsViewState extends State<ChatsView> {
           ),
         ),
 
-        // LISTA
         Expanded(
           child: StreamBuilder<List<Cliente>>(
             stream: DatabaseService().getClientes(),
             builder: (context, snapshot) {
-
               if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CupertinoActivityIndicator());
               if (!snapshot.hasData || snapshot.data!.isEmpty) return _buildEstadoVacio();
 
-              // Filtramos limpiamente con isNotEmpty (Evita fallos de null)
               var clientesConChat = snapshot.data!.where((c) => c.ultimoMensaje.isNotEmpty).toList();
               
               if (_searchQueryChats.isNotEmpty) {
                 clientesConChat = clientesConChat.where((c) => c.nombre.toLowerCase().contains(_searchQueryChats)).toList();
               }
 
-              // Ordenamos limpiamente
               clientesConChat.sort((a, b) => b.fechaUltimoMensaje.compareTo(a.fechaUltimoMensaje));
 
               if (clientesConChat.isEmpty) return _buildEstadoVacio();
@@ -82,7 +76,8 @@ class _ChatsViewState extends State<ChatsView> {
                       title: Text("${cliente.nombre} ${cliente.apellidos}", style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(cliente.ultimoMensaje, maxLines: 1, overflow: TextOverflow.ellipsis),
                       onTap: () {
-                        Navigator.push(context, CupertinoPageRoute(builder: (_) => ChatView(clienteId: cliente.id, nombreCliente: cliente.nombre)));
+                        // AQUÍ EL CAMBIO: receptorId
+                        Navigator.push(context, CupertinoPageRoute(builder: (_) => ChatView(receptorId: cliente.id, nombreReceptor: cliente.nombre)));
                       },
                     ),
                   );
@@ -134,8 +129,17 @@ class _ChatsViewState extends State<ChatsView> {
                           leading: const CircleAvatar(backgroundColor: AppTheme.mediumBlue, child: Icon(CupertinoIcons.person_fill, color: Colors.white)),
                           title: Text("${cliente.nombre} ${cliente.apellidos}"),
                           onTap: () {
-                            Navigator.pop(context); // Cierra modal
-                            Navigator.push(context, CupertinoPageRoute(builder: (_) => ChatView(clienteId: cliente.id, nombreCliente: cliente.nombre)));
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context, 
+                              CupertinoPageRoute(
+                                // AQUÍ EL CAMBIO: receptorId
+                                builder: (_) => ChatView(
+                                  receptorId: cliente.id,
+                                  nombreReceptor: cliente.nombre
+                                )
+                              )
+                            );
                           },
                         );
                       },

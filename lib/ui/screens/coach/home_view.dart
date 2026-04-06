@@ -1,10 +1,10 @@
 import 'package:coach_os_app/config/theme.dart';
-import 'package:coach_os_app/ui/screens/ajustes/ajustes_view.dart';
-import 'package:coach_os_app/ui/screens/chats/listaChats_view.dart';
-import 'package:coach_os_app/ui/screens/miDespacho/miDespacho_view.dart';
+import 'package:coach_os_app/ui/screens/compartidos/ajustes/ajustes_view.dart';
+import 'package:coach_os_app/ui/screens/compartidos/chats/listaChats_view.dart';
+import 'package:coach_os_app/ui/screens/coach/miDespacho/miDespacho_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:coach_os_app/ui/screens/clientes_view.dart';
+import 'package:coach_os_app/ui/screens/coach/clientes_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -45,8 +45,8 @@ class _HomeViewState extends State<HomeView> {
     switch (_indiceSeleccionado) {
       case 0: return const ClientesView();
       case 1: return const DespachoView();
-      case 2: return const ChatsView();
-      case 3: return const AjustesView();
+      case 2: return ChatsView();
+      case 3: return const AjustesView(rol: 'entrenador');
       default: return const ClientesView();
     }
   }

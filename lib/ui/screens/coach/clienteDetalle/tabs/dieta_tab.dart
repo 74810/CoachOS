@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/cliente_model.dart';
-import '../../../../config/theme.dart';
+import '../../../../../models/cliente_model.dart';
+import '../../../../../config/theme.dart';
 
 class DietaTab extends StatelessWidget {
   final Cliente cliente;

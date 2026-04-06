@@ -1,27 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Mensaje {
-  final String id;
+  final String emisorId;
   final String texto;
-  final bool esEntrenador;
-  final DateTime fecha;
+  final Timestamp fecha;
 
-  Mensaje({
-    required this.id,
-    required this.texto,
-    required this.esEntrenador,
-    required this.fecha,
-  });
+  Mensaje({required this.emisorId, required this.texto, required this.fecha});
 
-  factory Mensaje.fromFirestore(Map<String, dynamic> data, String id) {
+  // Convertir de Firebase a objeto Dart
+  factory Mensaje.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map;
     return Mensaje(
-      id: id,
+      emisorId: data['emisor_id'] ?? '',
       texto: data['texto'] ?? '',
-      esEntrenador: data['esEntrenador'] ?? true,
-      // Manejamos la fecha que viene de Firebase
-      fecha: data['timestamp'] != null 
-          ? (data['timestamp'] as Timestamp).toDate() 
-          : DateTime.now(),
+      fecha: data['fecha'] ?? Timestamp.now(),
     );
   }
 }
