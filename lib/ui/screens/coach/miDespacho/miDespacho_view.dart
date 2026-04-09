@@ -31,21 +31,28 @@ class DespachoView extends StatelessWidget {
               
               int totalClientes = clientes.length;
               double mrrTotal = 0.0;
-              int clientesPremium = 0;
-              int clientesBasico = 0;
+              
+              // MAGIA: Agrupamos clientes dinámicamente por el nombre de su tarifa
+              Map<String, int> conteoTarifas = {};
 
               for (var c in clientes) {
                 mrrTotal += c.precioTarifaDouble;
-                if (c.tipoTarifa.toLowerCase().contains('premium')) {
-                  clientesPremium++;
-                } else {
-                  clientesBasico++;
-                }
+                String tarifaNombre = c.tipoTarifa.isEmpty ? 'Sin Tarifa' : c.tipoTarifa;
+                conteoTarifas[tarifaNombre] = (conteoTarifas[tarifaNombre] ?? 0) + 1;
               }
 
               double arpu = totalClientes > 0 ? (mrrTotal / totalClientes) : 0.0;
-              double pctPremium = totalClientes > 0 ? (clientesPremium / totalClientes) * 100 : 0;
-              double pctBasico = totalClientes > 0 ? (clientesBasico / totalClientes) * 100 : 0;
+
+              // Paleta de colores para las diferentes tarifas
+              List<Color> coloresGrafica = [
+                AppTheme.secondaryOrange, 
+                AppTheme.mediumBlue, 
+                AppTheme.primaryBlue, 
+                Colors.purple, 
+                Colors.teal,
+                Colors.green,
+                Colors.amber
+              ];
 
               return ListView(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -133,7 +140,7 @@ class DespachoView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  //DISTRIBUCIÓN DE PLANES
+                  // DISTRIBUCIÓN DE PLANES DINÁMICO
                   if (totalClientes > 0) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -155,12 +162,17 @@ class DespachoView extends StatelessWidget {
                             child: PieChart(
                               PieChartData(
                                 sectionsSpace: 2, centerSpaceRadius: 30,
-                                sections: [
-                                  if (clientesPremium > 0)
-                                    PieChartSectionData(color: AppTheme.secondaryOrange, value: pctPremium, radius: 20, showTitle: false),
-                                  if (clientesBasico > 0)
-                                    PieChartSectionData(color: AppTheme.mediumBlue, value: pctBasico, radius: 15, showTitle: false),
-                                ],
+                                sections: conteoTarifas.entries.toList().asMap().entries.map((entry) {
+                                  int index = entry.key;
+                                  var mapEntry = entry.value;
+                                  double pct = (mapEntry.value / totalClientes) * 100;
+                                  return PieChartSectionData(
+                                    color: coloresGrafica[index % coloresGrafica.length],
+                                    value: pct,
+                                    radius: 20,
+                                    showTitle: false,
+                                  );
+                                }).toList(),
                               ),
                             ),
                           ),
@@ -168,11 +180,18 @@ class DespachoView extends StatelessWidget {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _Leyenda(AppTheme.secondaryOrange, "Premium", "$clientesPremium clientes"),
-                                const SizedBox(height: 12),
-                                _Leyenda(AppTheme.mediumBlue, "Básico", "$clientesBasico clientes"),
-                              ],
+                              children: conteoTarifas.entries.toList().asMap().entries.map((entry) {
+                                int index = entry.key;
+                                var mapEntry = entry.value;
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: _Leyenda(
+                                    coloresGrafica[index % coloresGrafica.length], 
+                                    mapEntry.key, // Nombre de la tarifa
+                                    "${mapEntry.value} clientes" // Cantidad
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           )
                         ],

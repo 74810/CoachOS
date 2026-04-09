@@ -18,7 +18,7 @@ class _PerfilEditViewState extends State<PerfilEditView> {
 
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _apellidosController = TextEditingController();
-  final TextEditingController _telefonoController = TextEditingController(); // Nuevo
+  final TextEditingController _telefonoController = TextEditingController(); 
   final TextEditingController _descController = TextEditingController();
 
   bool _isLoading = true;
@@ -45,6 +45,13 @@ class _PerfilEditViewState extends State<PerfilEditView> {
           _apellidosController.text = data['apellidos'] ?? "";
           _telefonoController.text = data['telefono'] ?? "";
           _descController.text = data['descripcion'] ?? "";
+          
+          // Cargamos el horario guardado previamente para que el Coach no tenga que ponerlo de cero
+          if (data['horario_inicio_h'] != null) {
+            _inicio = TimeOfDay(hour: data['horario_inicio_h'], minute: data['horario_inicio_m']);
+            _fin = TimeOfDay(hour: data['horario_fin_h'], minute: data['horario_fin_m']);
+          }
+          
           _isLoading = false;
         });
       }
@@ -54,6 +61,7 @@ class _PerfilEditViewState extends State<PerfilEditView> {
   Future<void> _guardar() async {
     setState(() => _isSaving = true);
     final user = _auth.currentUser;
+    
     if (user != null) {
       Map<String, dynamic> dataToUpdate = {
         'nombre': _nombreController.text,
@@ -61,9 +69,18 @@ class _PerfilEditViewState extends State<PerfilEditView> {
         'telefono': _telefonoController.text,
       };
 
+      // Si es entrenador, guardamos su bio y su horario formateado
       if (widget.rol == 'entrenador') {
         dataToUpdate['descripcion'] = _descController.text;
-        // Aquí guardarías el horario también si lo tienes en BD
+        
+        // Creamos la frase que leerá el cliente en la vista de perfil (Ej: "De 09:30 a 21:00")
+        dataToUpdate['horario'] = "De ${_inicio.format(context)} a ${_fin.format(context)}";
+        
+        // Guardamos los números por separado para que el "TimePicker" de Flutter pueda leerlos la próxima vez
+        dataToUpdate['horario_inicio_h'] = _inicio.hour;
+        dataToUpdate['horario_inicio_m'] = _inicio.minute;
+        dataToUpdate['horario_fin_h'] = _fin.hour;
+        dataToUpdate['horario_fin_m'] = _fin.minute;
       }
 
       await _firestore.collection('usuarios').doc(user.uid).update(dataToUpdate);

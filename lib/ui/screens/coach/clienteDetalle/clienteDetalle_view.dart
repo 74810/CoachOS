@@ -1,3 +1,4 @@
+import 'package:coach_os_app/ui/screens/coach/clienteDetalle/tabs/revision_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../models/cliente_model.dart';
@@ -110,8 +111,7 @@ class _ClienteDetalleViewState extends State<ClienteDetalleView> {
       case 0: return PerfilTab(cliente: widget.cliente);
       case 1: return EntrenoTab(cliente: widget.cliente);
       case 2: return DietaTab(cliente: widget.cliente);
-      case 3: return const Center(child: Text("Módulo de Revisiones en construcción", style: TextStyle(color: Colors.grey)));
-      // CORRECCIÓN 3: Ajuste de variables a receptorId y nombreReceptor
+      case 3: return RevisionTab(cliente: widget.cliente);
       case 4: return ChatView(receptorId: widget.cliente.id, nombreReceptor: widget.cliente.nombre, esPantallaCompleta: false);
       default: return PerfilTab(cliente: widget.cliente);
     }

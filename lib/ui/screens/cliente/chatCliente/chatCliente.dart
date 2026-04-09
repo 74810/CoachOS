@@ -6,6 +6,9 @@ import '../../../../services/chat_service.dart';
 import '../../../../models/mensaje_model.dart';
 import '../../../../config/theme.dart';
 
+// IMPORTANTE: Añadimos la importación absoluta del perfil para que no falle
+import 'package:coach_os_app/ui/screens/compartidos/perfilUsuario_view.dart';
+
 class ChatCliente extends StatefulWidget {
   const ChatCliente({super.key});
 
@@ -33,13 +36,11 @@ class _ChatClienteViewState extends State<ChatCliente> {
     if (_miUid.isEmpty) return;
 
     try {
-      // 1. Miramos en el perfil del cliente quién es su entrenador
       final miDoc = await FirebaseFirestore.instance.collection('usuarios').doc(_miUid).get();
       
       if (miDoc.exists && miDoc.data()!.containsKey('entrenador_id')) {
         final coachId = miDoc.data()!['entrenador_id'];
 
-        // 2. Buscamos el nombre del entrenador para ponerlo arriba
         final coachDoc = await FirebaseFirestore.instance.collection('usuarios').doc(coachId).get();
         String nombre = "Tu Entrenador";
         
@@ -67,7 +68,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
     }
   }
 
-  // --- ENVIAR MENSAJE USANDO TU SERVICIO ---
+  // --- ENVIAR MENSAJE ---
   void _enviarMensaje() async {
     final texto = _mensajeController.text.trim();
     if (texto.isEmpty || _entrenadorId == null) return;
@@ -89,10 +90,30 @@ class _ChatClienteViewState extends State<ChatCliente> {
         backgroundColor: Colors.white,
         elevation: 1,
         centerTitle: true,
-        // Al cliente normalmente no le ponemos botón de volver si es una pestaña del menú principal
-        title: Text(
-          _nombreEntrenador, 
-          style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)
+        // AHORA EL TÍTULO ES IDÉNTICO AL DEL COACH Y CLICABLE
+        title: GestureDetector(
+          onTap: () {
+            // Si el cliente tiene entrenador, le abrimos su perfil
+            if (_entrenadorId != null) {
+              Navigator.push(
+                context, 
+                CupertinoPageRoute(builder: (context) => PerfilUsuarioView(uid: _entrenadorId!))
+              );
+            }
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _nombreEntrenador, 
+                style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)
+              ),
+              const SizedBox(width: 6),
+              // Icono gris para indicar que se puede hacer clic
+              if (_entrenadorId != null)
+                const Icon(CupertinoIcons.info_circle_fill, size: 16, color: Colors.grey),
+            ],
+          ),
         ),
       ),
       body: SafeArea(
@@ -105,7 +126,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
     );
   }
 
-  // --- CUERPO DEL CHAT (Idéntico al del Coach) ---
+  // --- CUERPO DEL CHAT ---
   Widget _buildCuerpoChat() {
     return Column(
       children: [
@@ -131,10 +152,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
                 itemCount: mensajes.length,
                 itemBuilder: (context, index) {
                   final msg = mensajes[index];
-                  
-                  // ¿Es mío este mensaje?
                   bool esMio = msg.emisorId == _miUid;
-
                   return _buildBurbuja(msg.texto, esMio);
                 },
               );
@@ -179,7 +197,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
     );
   }
 
-  // --- BURBUJAS DE MENSAJE (Idéntico al del Coach) ---
+  // --- BURBUJAS DE MENSAJE ---
   Widget _buildBurbuja(String texto, bool esMio) {
     return Align(
       alignment: esMio ? Alignment.centerRight : Alignment.centerLeft,

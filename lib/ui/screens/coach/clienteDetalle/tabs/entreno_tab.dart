@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // IMPORTANTE: Añadido para poder leer la biblioteca del coach
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../../models/cliente_model.dart';
@@ -131,9 +132,76 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
     }
   }
 
+  // --- NUEVA LÓGICA: IMPORTAR DE LA BIBLIOTECA ---
+  void _abrirSelectorBiblioteca() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.5,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Text("Mis Plantillas Guardadas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+              const SizedBox(height: 10),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('usuarios')
+                      .doc(user.uid)
+                      .collection('biblioteca_rutinas')
+                      .orderBy('fecha_creacion', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CupertinoActivityIndicator());
+                    
+                    final docs = snapshot.data?.docs ?? [];
+                    if (docs.isEmpty) {
+                      return const Center(child: Text("No tienes plantillas guardadas en Ajustes > Biblioteca."));
+                    }
+
+                    return ListView.builder(
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final data = docs[index].data() as Map<String, dynamic>;
+                        return ListTile(
+                          leading: const Icon(Icons.file_download, color: AppTheme.secondaryOrange),
+                          title: Text(data['titulo'] ?? 'Sin título', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text("${(data['ejercicios'] as List).length} ejercicios"),
+                          onTap: () {
+                            // Rellenar formulario con la plantilla elegida
+                            setState(() {
+                              _tituloController.text = data['titulo'] ?? '';
+                              _notasGeneralesController.text = data['notas'] ?? '';
+                              ejerciciosSeleccionados = (data['ejercicios'] as List? ?? [])
+                                  .map((e) => EjercicioAsignado.fromMap(e as Map<String, dynamic>))
+                                  .toList();
+                            });
+                            Navigator.pop(context); // Cierra el menú de plantillas
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("✅ Plantilla cargada."), backgroundColor: Colors.green),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _guardar() async {
     print("--- INTENTANDO GUARDAR ---");
-    // Corrección 1: Usamos la variable correcta 'ejerciciosSeleccionados'
     if (_tituloController.text.isEmpty || ejerciciosSeleccionados.isEmpty) { 
       print("Faltan datos");
       return;
@@ -141,7 +209,6 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
 
     print("ID del cliente destino: ${widget.cliente.id}");
 
-    // Corrección 2: Usamos '_notasGeneralesController'
     final data = {
       'titulo': _tituloController.text,
       'notas': _notasGeneralesController.text,
@@ -149,7 +216,6 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
     };
 
     try {
-      // Corrección 3: Lógica para Editar vs Crear
       if (widget.rutinaEdit != null) {
         await FirebaseFirestore.instance
             .collection('usuarios')
@@ -170,13 +236,11 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
         print("GUARDADO CON ÉXITO EN FIREBASE");
       }
           
-      // SOLO cerramos la ventana si se ha guardado bien
       if (mounted) {
         Navigator.pop(context);
       }
       
     } catch (e) {
-      // Si hay cualquier bloqueo o falta de permisos, saltará aquí
       print("ERROR AL GUARDAR: $e");
     }
   }
@@ -195,6 +259,34 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
               IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close))
             ],
           ),
+          
+          // --- NUEVO BOTÓN: IMPORTAR PLANTILLA (Solo si creamos una rutina nueva) ---
+          if (widget.rutinaEdit == null) ...[
+            const SizedBox(height: 10),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _abrirSelectorBiblioteca,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppTheme.lightBlue.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.2))
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.library_books, color: AppTheme.primaryBlue, size: 20),
+                    SizedBox(width: 8),
+                    Text("Importar de mi Biblioteca", style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+
           TextField(controller: _tituloController, decoration: const InputDecoration(labelText: "Título de la rutina")),
           TextField(controller: _notasGeneralesController, decoration: const InputDecoration(labelText: "Notas generales (opcional)", hintStyle: TextStyle(fontSize: 12))),
           const SizedBox(height: 10),

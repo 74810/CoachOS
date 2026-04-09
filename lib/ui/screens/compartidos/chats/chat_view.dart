@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../services/chat_service.dart';
 import '../../../../models/mensaje_model.dart';
 import '../../../../config/theme.dart';
+// IMPORTANTE: Importamos la nueva vista de perfil
+import '../perfilUsuario_view.dart';
 
 class ChatView extends StatefulWidget {
   final String receptorId; 
@@ -55,9 +57,22 @@ class _ChatViewState extends State<ChatView> {
           icon: const Icon(CupertinoIcons.back, color: AppTheme.primaryBlue),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          widget.nombreReceptor, 
-          style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)
+        // AHORA EL TÍTULO ES CLICABLE Y TE LLEVA AL PERFIL
+        title: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context, 
+              CupertinoPageRoute(builder: (context) => PerfilUsuarioView(uid: widget.receptorId))
+            );
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.nombreReceptor, style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 6),
+              const Icon(CupertinoIcons.info_circle_fill, size: 16, color: Colors.grey),
+            ],
+          ),
         ),
       ),
       body: SafeArea(
@@ -91,10 +106,7 @@ class _ChatViewState extends State<ChatView> {
                 itemCount: mensajes.length,
                 itemBuilder: (context, index) {
                   final msg = mensajes[index];
-                  
-                  // NUEVA LÓGICA: ¿Es mío este mensaje?
                   bool esMio = msg.emisorId == _miUid;
-
                   return _buildBurbuja(msg.texto, esMio);
                 },
               );

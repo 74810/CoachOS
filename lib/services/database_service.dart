@@ -91,44 +91,4 @@ class DatabaseService {
       'perfilCompletado': true,
     }, SetOptions(merge: true));
   }
-
-  Future<void> inicializarBaseDeDatosMaestra() async {
-  final db = FirebaseFirestore.instance;
-
-  // MAPA CON LOS DATOS EXACTOS (Copiados de tus capturas)
-  Map<String, Map<String, dynamic>> usuarios = {
-    // ADMIN (admin@test.com)
-    '3l9JDAU9FpS04P73nS8UfT629Xw1': {
-      'uid': '3l9JDAU9FpS04P73nS8UfT629Xw1',
-      'rol': 'admin',
-      'nombre': 'Administrador Jefe',
-      'email': 'admin@test.com',
-    },
-    // COACH (coach@test.com)
-    'jxINtvli6aKDZGxBrPlvIX1Kh83': {
-      'uid': 'jxINtvli6aKDZGxBrPlvIX1Kh83',
-      'rol': 'entrenador',
-      'nombre': 'Marcos Entrenador',
-      'email': 'coach@test.com',
-    },
-    // CLIENTE (cliente@test.com)
-    'G7crcmPusdQ9ukh5lKG7lUpaZUz1': {
-      'uid': 'G7crcmPusdQ9ukh5lKG7lUpaZUz1',
-      'rol': 'cliente',
-      'nombre': 'Carlos Cliente',
-      'email': 'cliente@test.com',
-      'entrenador_id': 'jxINtvli6aKDZGxBrPlvIX1Kh83', // Vinculado a Marcos
-    },
-  };
-
-  try {
-    for (var entry in usuarios.entries) {
-      await db.collection('usuarios').doc(entry.key).set(entry.value);
-      print("✅ Usuario sincronizado: ${entry.value['nombre']}");
-    }
-    print("🚀 BASE DE DATOS REPARADA CON ÉXITO");
-  } catch (e) {
-    print("❌ ERROR AL REPARAR: $e");
-  }
-}
 }

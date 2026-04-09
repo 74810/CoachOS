@@ -16,6 +16,14 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _indiceSeleccionado = 0;
 
+  // Guardamos las pantallas en memoria
+  final List<Widget> _pantallas = [
+    const ClientesView(),
+    const DespachoView(),
+    const ChatsView(),
+    const AjustesView(rol: 'entrenador'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,18 +44,11 @@ class _HomeViewState extends State<HomeView> {
         ],
       ),
       body: SafeArea(
-        child: _construirCuerpoPrincipal(),
+        child: IndexedStack(
+          index: _indiceSeleccionado,
+          children: _pantallas,
+        ),
       ),
     );
-  }
-
-  Widget _construirCuerpoPrincipal() {
-    switch (_indiceSeleccionado) {
-      case 0: return const ClientesView();
-      case 1: return const DespachoView();
-      case 2: return ChatsView();
-      case 3: return const AjustesView(rol: 'entrenador');
-      default: return const ClientesView();
-    }
   }
 }

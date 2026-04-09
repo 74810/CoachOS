@@ -1,9 +1,12 @@
 import 'package:coach_os_app/config/theme.dart';
+import 'package:coach_os_app/ui/screens/coach/bibliotecaRevisiones_view.dart';
 import 'package:coach_os_app/ui/screens/compartidos/ajustes/perfilEdit_view.dart';
 import 'package:coach_os_app/ui/screens/compartidos/ajustes/suscripciones_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../services/auth_service.dart';
+import '../../coach/bibliotecaRutinas_view.dart'; 
+import '../../coach/bibliotecaDietas_view.dart'; 
 
 class AjustesView extends StatelessWidget {
   final String rol; // Recibimos el rol: 'entrenador' o 'cliente'
@@ -48,6 +51,67 @@ class AjustesView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // --- SECCIÓN BIBLIOTECA (SOLO PARA ENTRENADORES) ---
+              if (esCoach) ...[
+                _buildSectionTitle("MI CONTENIDO PREDEFINIDO"),
+                _buildCard(
+                  child: Column(
+                    children: [
+                      // 1. Biblioteca de Entrenamientos
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: AppTheme.primaryBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.fitness_center, color: AppTheme.primaryBlue, size: 22),
+                        ),
+                        title: const Text("Biblioteca de Entrenamientos"),
+                        subtitle: const Text("Gestiona tus plantillas de rutinas"),
+                        trailing: const Icon(CupertinoIcons.chevron_forward, size: 18),
+                        onTap: () => Navigator.push(
+                          context,
+                          CupertinoPageRoute(builder: (context) => const BibliotecaRutinasView()),
+                        ),
+                      ),
+                      const Divider(height: 1, indent: 60), // Línea separadora sutil
+                      
+                      // 2. Biblioteca de Dietas
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.restaurant_menu, color: Colors.green, size: 22),
+                        ),
+                        title: const Text("Biblioteca de Dietas"),
+                        subtitle: const Text("Gestiona tus plantillas de nutrición"),
+                        trailing: const Icon(CupertinoIcons.chevron_forward, size: 18),
+                        onTap: () => Navigator.push(
+                          context,
+                          CupertinoPageRoute(builder: (context) => const BibliotecaDietasView()),
+                        ),
+                      ),
+                      const Divider(height: 1, indent: 60), // Línea separadora sutil
+                      
+                      // 3. Biblioteca de Revisiones (NUEVO)
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: Colors.purple.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(CupertinoIcons.doc_chart_fill, color: Colors.purple, size: 22),
+                        ),
+                        title: const Text("Plantillas de Revisión"),
+                        subtitle: const Text("Configura qué parámetros medir"),
+                        trailing: const Icon(CupertinoIcons.chevron_forward, size: 18),
+                        onTap: () => Navigator.push(
+                          context,
+                          CupertinoPageRoute(builder: (context) => const BibliotecaRevisionesView()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
 
               // --- SECCIÓN SUSCRIPCIÓN ---
               _buildSectionTitle("SITUACIÓN ACTUAL"),
