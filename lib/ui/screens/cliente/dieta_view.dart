@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/dieta_model.dart'; 
-import '../../../../config/theme.dart';
+import '../../../models/dieta_model.dart'; 
+import '../../../config/theme.dart';
 
 class DietaCliente extends StatelessWidget {
   const DietaCliente({super.key});
@@ -62,7 +62,7 @@ class DietaCliente extends StatelessWidget {
     );
   }
 
-  // --- LA TARJETA PRINCIPAL DESPLEGABLE ---
+  //TARJETA PRINCIPAL DESPLEGABLE
   Widget _buildCardDietaCliente(Dieta dieta) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -91,10 +91,9 @@ class DietaCliente extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-              child: Text("💡 Nota del Coach: ${dieta.notasGenerales}", style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
+              child: Text("Nota del Coach: ${dieta.notasGenerales}", style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
             ),
           
-          // --- AQUÍ OCURRE LA MAGIA DEL CAMALEÓN ---
           if (dieta.tipo == 'macros') 
             _buildVistaMacros(dieta)
           else 
@@ -106,7 +105,7 @@ class DietaCliente extends StatelessWidget {
     );
   }
 
-  // --- DISEÑO: SI LA DIETA ES DE MACROS ---
+  //DISEÑO: SI LA DIETA ES DE MACROS
   Widget _buildVistaMacros(Dieta dieta) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -140,7 +139,7 @@ class DietaCliente extends StatelessWidget {
     );
   }
 
-  // --- DISEÑO: SI LA DIETA ES MENÚ O PORCIONES ---
+  //DISEÑO: SI LA DIETA ES MENÚ O PORCIONES
   Widget _buildVistaComidas(Dieta dieta) {
     if (dieta.comidas == null || dieta.comidas!.isEmpty) {
       return const Padding(padding: EdgeInsets.all(16), child: Text("No hay comidas registradas"));

@@ -56,7 +56,6 @@ class _ClientesViewState extends State<ClientesView> {
                 return const Center(child: Text("No hay clientes registrados."));
               }
 
-              // Aplicar filtros
               final clientes = snapshot.data!.where((c) {
                 final matchNombre = c.nombre.toLowerCase().contains(_searchQuery) || 
                                     c.apellidos.toLowerCase().contains(_searchQuery);
@@ -66,7 +65,6 @@ class _ClientesViewState extends State<ClientesView> {
 
                 return matchNombre && matchSexo && matchSuscripcion && matchEdad;
               }).toList();
-
               return ListView.builder(
                 itemCount: clientes.length,
                 itemBuilder: (context, index) {

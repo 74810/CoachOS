@@ -27,11 +27,9 @@ class PerfilUsuarioView extends StatelessWidget {
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
           
-          // Verificamos si es entrenador (puede estar guardado como 'entrenador' o 'coach')
           final String rol = data['rol']?.toString().toLowerCase() ?? '';
           final bool esCoach = rol == 'entrenador' || rol == 'coach';
 
-          // Extraemos los campos asegurándonos de que coincidan con PerfilEditView
           final biografia = data['descripcion'] ?? '';
           final horario = data['horario'] ?? '';
 
@@ -66,19 +64,16 @@ class PerfilUsuarioView extends StatelessWidget {
               
               const SizedBox(height: 20),
 
-              // SECCIÓN EXCLUSIVA PARA EL COACH
               if (esCoach) ...[
                 const Text("DETALLES PROFESIONALES", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
                 const SizedBox(height: 10),
                 
-                // BIOGRAFÍA
                 _buildCajaInfo(
                   "Biografía", 
                   biografia.toString().isEmpty ? "El coach aún no ha escrito su biografía." : biografia, 
                   CupertinoIcons.doc_text
                 ),
                 
-                // HORARIO
                 _buildCajaInfo(
                   "Horario de atención", 
                   horario.toString().isEmpty ? "No especificado." : horario, 

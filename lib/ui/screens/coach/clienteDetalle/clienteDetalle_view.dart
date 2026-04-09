@@ -24,10 +24,7 @@ class _ClienteDetalleViewState extends State<ClienteDetalleView> {
     if (widget.cliente.cuotaPagada) return 'activo';
 
     try {
-      // CORRECCIÓN 1: Comprobar si la fecha es la que pusimos por defecto (año 1970/epoch 0)
       if (widget.cliente.fechaUltimoMensaje.millisecondsSinceEpoch == 0) return 'inactivo';
-
-      // CORRECCIÓN 2: Ya no hace falta hacer un .parse() porque ya es un DateTime real
       DateTime fechaCaducidad = widget.cliente.fechaUltimoMensaje;
       final diasDesdeCaducidad = DateTime.now().difference(fechaCaducidad).inDays;
 
@@ -105,7 +102,7 @@ class _ClienteDetalleViewState extends State<ClienteDetalleView> {
     );
   }
 
-  // --- CONTROLADOR DE PESTAÑAS ---
+  //CONTROLADOR DE PESTAÑAS
   Widget _construirCuerpoPestana() {
     switch (_indiceSeleccionado) {
       case 0: return PerfilTab(cliente: widget.cliente);

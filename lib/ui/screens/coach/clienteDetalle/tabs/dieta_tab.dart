@@ -82,7 +82,6 @@ class DietaTab extends StatelessWidget {
     );
   }
 
-  // --- TARJETA CORREGIDA CON EXPANSION TILE ---
   Widget _buildCardDieta(BuildContext context, Dieta dieta) {
     return Card(
       margin: const EdgeInsets.only(top: 12),
@@ -128,7 +127,6 @@ class DietaTab extends StatelessWidget {
     );
   }
 
-  // Vista rápida de Macros para el entrenador
   Widget _buildDetalleMacros(Dieta dieta) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -153,7 +151,6 @@ class DietaTab extends StatelessWidget {
     );
   }
 
-  // Vista rápida de Comidas para el entrenador
   Widget _buildDetalleComidas(Dieta dieta) {
     if (dieta.comidas == null) return const SizedBox();
     return Column(
@@ -166,14 +163,12 @@ class DietaTab extends StatelessWidget {
   }
 }
 
-// --- CLASE AUXILIAR PARA EL FORMULARIO ---
 class _ComidaController {
   TextEditingController nombreCtrl;
   TextEditingController elementosCtrl;
   _ComidaController(this.nombreCtrl, this.elementosCtrl);
 }
 
-// --- EL MODAL (SE MANTIENE IGUAL QUE EL ANTERIOR) ---
 class _ModalNuevaDietaCliente extends StatefulWidget {
   final Cliente cliente;
   final Dieta? dietaEdit;

@@ -20,7 +20,7 @@ class SuscripcionesView extends StatelessWidget {
     );
   }
 
-  // --- VISTA PARA EL CLIENTE ---
+  //VISTA PARA EL CLIENTE
   Widget _buildClienteView() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Center(child: Text("Error de sesión"));
@@ -32,7 +32,6 @@ class SuscripcionesView extends StatelessWidget {
         
         final data = snapshotUsuario.data?.data() as Map<String, dynamic>? ?? {};
         
-        // Extracción 100% segura para evitar el cuelgue rojo
         final String tarifaActual = data['tipo_tarifa']?.toString() ?? "Sin Tarifa";
         final dynamic precioRaw = data['precio_tarifa'];
         final String precioActual = precioRaw != null ? precioRaw.toString() : "0";
@@ -41,7 +40,7 @@ class SuscripcionesView extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // MI TARIFA ACTUAL
+            //TARIFA ACTUAL
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -75,17 +74,16 @@ class SuscripcionesView extends StatelessWidget {
               ))
             else
               StreamBuilder<QuerySnapshot>(
-                // Traemos todas las tarifas visibles (quitamos el filtro estricto de Firebase para no liarla con los nombres)
+                // Traemos todas las tarifas visibles
                 stream: FirebaseFirestore.instance.collection('tarifas')
                     .where('esVisible', isEqualTo: true) 
                     .snapshots(),
                 builder: (context, snapshotTarifas) {
                   if (snapshotTarifas.connectionState == ConnectionState.waiting) return const CupertinoActivityIndicator();
                   
-                  // FILTRO INTELIGENTE: Busca si el ID coincide en 'coachId' O en 'entrenador_id'
                   final tarifas = snapshotTarifas.data?.docs.where((doc) {
                     final t = doc.data() as Map<String, dynamic>;
-                    final idCoachTarifa = t['coachId'] ?? t['entrenador_id'] ?? '';
+                    final idCoachTarifa = t['entrenador_id'] ?? '';
                     return idCoachTarifa == entrenadorId;
                   }).toList() ?? [];
                   

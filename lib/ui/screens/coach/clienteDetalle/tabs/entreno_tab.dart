@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // IMPORTANTE: Añadido para poder leer la biblioteca del coach
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../../models/cliente_model.dart';
@@ -132,7 +132,7 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
     }
   }
 
-  // --- NUEVA LÓGICA: IMPORTAR DE LA BIBLIOTECA ---
+  //IMPORTAR DE LA BIBLIOTECA
   void _abrirSelectorBiblioteca() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -260,7 +260,7 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
             ],
           ),
           
-          // --- NUEVO BOTÓN: IMPORTAR PLANTILLA (Solo si creamos una rutina nueva) ---
+          //IMPORTAR PLANTILLA
           if (widget.rutinaEdit == null) ...[
             const SizedBox(height: 10),
             CupertinoButton(

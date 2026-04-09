@@ -8,13 +8,13 @@ class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
-  // Obtengo la lista de clientes que pertenecen específicamente al coach logueado
+  // Obtiene la lista de clientes que pertenecen específicamente al coach logueado
   Stream<List<Cliente>> getClientes() {
     final String miUid = _auth.currentUser?.uid ?? "";
 
     return _db
         .collection('usuarios')
-        .where('entrenador_id', isEqualTo: miUid) // Filtro para que el coach solo vea a los suyos
+        .where('entrenador_id', isEqualTo: miUid) // Filtro para que el coach solo vea sus clientes
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -22,23 +22,19 @@ class DatabaseService {
           }).toList();
         });
   }
+  // Stream<List<Ejercicio>> getEjercicios() {
+  //   return _db.collection('biblioteca_ejercicios').snapshots().map((snapshot) {
+  //     return snapshot.docs.map((doc) {
+  //       return Ejercicio.fromFirestore(doc.data(), doc.id);
+  //     }).toList();
+  //   });
+  // }
 
-  // Traigo todos los ejercicios de la biblioteca global para los entrenamientos
-  Stream<List<Ejercicio>> getEjercicios() {
-    return _db.collection('biblioteca_ejercicios').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Ejercicio.fromFirestore(doc.data(), doc.id);
-      }).toList();
-    });
-  }
-  // --- GESTIÓN DE TARIFAS ---
-
-  // Elimino una tarifa de la base de datos por su ID
+  //GESTIÓN DE TARIFAS
   Future<void> eliminarTarifa(String id) async {
     await _db.collection('tarifas').doc(id).delete();
   }
 
-  // Creo una nueva tarifa vinculándola al ID del coach actual
   Future<void> crearTarifa(String nombre, int precio, String desc, int gracia, bool visible) async { 
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
@@ -54,14 +50,14 @@ class DatabaseService {
     });
   }
 
-  // Cambio si una tarifa es pública o privada para los clientes
+  // Cambio visibilidad tarifa
   Future<void> actualizarVisibilidadTarifa(String tarifaId, bool nuevaVisibilidad) async {
     await _db.collection('tarifas').doc(tarifaId).update({
       'esVisible': nuevaVisibilidad,
     });
   }
 
-  // Obtengo solo las tarifas que ha creado el coach que está usando la app
+  // Obtiene solo las tarifas que ha creado el coach que está usando la app
   Stream<List<Tarifa>> getTarifas() {
     final uid = _auth.currentUser?.uid;
     return _db
@@ -73,10 +69,9 @@ class DatabaseService {
             .toList());
   }
 
-  // --- PERFIL Y CONFIGURACIÓN ---
-
-  // Actualizo los datos profesionales del coach (horarios, descripción, etc.)
-  Future<void> actualizarPerfilAdmin({
+  //PERFIL Y CONFIGURACIÓN
+  // Actualizo los datos profesionales del coach 
+  Future<void> actualizarPerfil({
     required String uid,
     required String nombre,
     required String descripcion,

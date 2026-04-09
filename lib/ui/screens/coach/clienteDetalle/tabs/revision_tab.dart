@@ -10,7 +10,6 @@ class RevisionTab extends StatelessWidget {
   final Cliente cliente;
   const RevisionTab({super.key, required this.cliente});
 
-  // --- MODAL PARA ELEGIR LA PLANTILLA DE LA BIBLIOTECA ---
   void _abrirSelectorPlantillas(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -49,7 +48,6 @@ class RevisionTab extends StatelessWidget {
                           title: Text(plantilla.titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text("${plantilla.parametros.length} parámetros"),
                           onTap: () async {
-                            // CAPTURAMOS LA NAVEGACIÓN ANTES DE GUARDAR
                             final navigator = Navigator.of(context);
                             final scaffold = ScaffoldMessenger.of(context);
 
@@ -59,17 +57,17 @@ class RevisionTab extends StatelessWidget {
                                 'nombre_plantilla_activa': plantilla.titulo,
                               }, SetOptions(merge: true));
 
-                              navigator.pop(); // CIERRA LA VENTANA SI HAY ÉXITO
+                              navigator.pop();
                               
                               scaffold.showSnackBar(
-                                SnackBar(content: Text("✅ Plantilla asignada a ${cliente.nombre}"), backgroundColor: Colors.purple),
+                                SnackBar(content: Text("Plantilla asignada a ${cliente.nombre}"), backgroundColor: Colors.purple),
                               );
                               
                             } catch (e) {
-                              navigator.pop(); // CIERRA LA VENTANA TAMBIÉN SI HAY ERROR
+                              navigator.pop();
                               
                               scaffold.showSnackBar(
-                                SnackBar(content: Text("❌ ERROR DE PERMISOS: $e\nVe a Firebase > Firestore > Rules"), backgroundColor: Colors.red, duration: const Duration(seconds: 8)),
+                                SnackBar(content: Text("ERROR DE PERMISOS: $e\nVe a Firebase > Firestore > Rules"), backgroundColor: Colors.red, duration: const Duration(seconds: 8)),
                               );
                             }
                           },
@@ -90,7 +88,7 @@ class RevisionTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // --- SECCIÓN 1: PLANTILLA ACTIVA ---
+        //PLANTILLA ACTIVA
         StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance.collection('usuarios').doc(cliente.id).snapshots(),
           builder: (context, snapshot) {
@@ -137,7 +135,7 @@ class RevisionTab extends StatelessWidget {
           },
         ),
 
-        // --- SECCIÓN 2: HISTORIAL DE REVISIONES ---
+        //HISTORIAL DE REVISIONES ---
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
@@ -192,7 +190,7 @@ class RevisionTab extends StatelessWidget {
     );
   }
 }
-// --- MODAL PARA QUE EL COACH CONTESTE LA REVISIÓN ---
+//MODAL PARA QUE EL COACH CONTESTE LA REVISIÓN
 class _ModalCorregirRevision extends StatefulWidget {
   final Cliente cliente;
   final Revision revision;
@@ -229,12 +227,12 @@ class _ModalCorregirRevisionState extends State<_ModalCorregirRevision> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Respuesta enviada al cliente"), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Respuesta enviada al cliente"), backgroundColor: Colors.green));
       }
     } catch (e) {
       if (mounted) {
         setState(() => _guardando = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Error: $e"), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red));
       }
     }
   }
@@ -259,8 +257,8 @@ class _ModalCorregirRevisionState extends State<_ModalCorregirRevision> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Mostrar los datos
-                  const Text("📊 Datos subidos:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  //Mostrar los datos
+                  const Text("Datos subidos:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
@@ -274,8 +272,8 @@ class _ModalCorregirRevisionState extends State<_ModalCorregirRevision> {
 
                   const SizedBox(height: 20),
                   
-                  // 2. Mostrar las Fotos
-                  const Text("📸 Fotos de progreso:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  //Mostrar las Fotos
+                  const Text("Fotos de progreso:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
                   const SizedBox(height: 8),
                   if (widget.revision.fotosUrl.isEmpty)
                     const Text("El cliente no subió fotos esta vez.", style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))
@@ -299,8 +297,8 @@ class _ModalCorregirRevisionState extends State<_ModalCorregirRevision> {
 
                   const SizedBox(height: 20),
 
-                  // 3. Sensaciones del cliente
-                  const Text("💭 Sus sensaciones:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  //Sensaciones del cliente
+                  const Text("Sus sensaciones:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
@@ -311,8 +309,8 @@ class _ModalCorregirRevisionState extends State<_ModalCorregirRevision> {
 
                   const SizedBox(height: 20),
                   
-                  // 4. Tu Respuesta
-                  const Text("👨‍🏫 Tu Respuesta / Feedback:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                  //Respuesta
+                  const Text("Tu Respuesta / Feedback:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _respuestaController,

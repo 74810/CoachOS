@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/revision_model.dart'; // Ajusta la ruta a tu carpeta models
-import '../../../../config/theme.dart';       // Ajusta la ruta a tu theme
+import '../../../../models/revision_model.dart'; 
+import '../../../../config/theme.dart';       
 
 class BibliotecaRevisionesView extends StatelessWidget {
   const BibliotecaRevisionesView({super.key});
@@ -67,7 +67,7 @@ class BibliotecaRevisionesView extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _abrirConfiguradorPlantilla(context),
-        backgroundColor: Colors.purple, // Color morado para distinguir Revisiones
+        backgroundColor: Colors.purple,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text("Nueva Plantilla", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
@@ -128,7 +128,6 @@ class BibliotecaRevisionesView extends StatelessWidget {
   }
 }
 
-// --- MODAL PARA CREAR/EDITAR LA PLANTILLA DE REVISIÓN ---
 class _ModalNuevaPlantillaRevision extends StatefulWidget {
   final PlantillaRevision? plantillaEdit;
   const _ModalNuevaPlantillaRevision({this.plantillaEdit});
@@ -150,7 +149,6 @@ class _ModalNuevaPlantillaRevisionState extends State<_ModalNuevaPlantillaRevisi
           .map((p) => TextEditingController(text: p))
           .toList();
     } else {
-      // Por defecto, le ponemos "Peso (kg)" para que entienda cómo funciona
       _parametrosControllers.add(TextEditingController(text: "Peso (kg)"));
     }
   }
@@ -172,7 +170,6 @@ Future<void> _guardarPlantilla() async {
       'fecha_creacion': FieldValue.serverTimestamp(),
     };
 
-    // CAPTURAMOS LA NAVEGACIÓN ANTES DE GUARDAR
     final navigator = Navigator.of(context);
     final scaffold = ScaffoldMessenger.of(context);
 
@@ -183,11 +180,10 @@ Future<void> _guardarPlantilla() async {
         await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).collection('biblioteca_revisiones').add(data);
       }
       
-      navigator.pop(); // CIERRA LA VENTANA SI HAY ÉXITO
-      
+      navigator.pop();
     } catch (e) {
-      navigator.pop(); // CIERRA LA VENTANA TAMBIÉN SI HAY ERROR
-      scaffold.showSnackBar(SnackBar(content: Text("❌ Error de Firebase: $e"), backgroundColor: Colors.red, duration: const Duration(seconds: 5)));
+      navigator.pop();
+      scaffold.showSnackBar(SnackBar(content: Text("Error de Firebase: $e"), backgroundColor: Colors.red, duration: const Duration(seconds: 5)));
     }
   }
 

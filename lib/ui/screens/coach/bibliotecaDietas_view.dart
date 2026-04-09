@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/dieta_model.dart'; // Ajusta la ruta a tu carpeta models
-import '../../../../config/theme.dart';       // Ajusta la ruta a tu theme
+import '../../../../models/dieta_model.dart'; 
+import '../../../../config/theme.dart';  
 
 class BibliotecaDietasView extends StatelessWidget {
   const BibliotecaDietasView({super.key});
@@ -127,7 +127,6 @@ class BibliotecaDietasView extends StatelessWidget {
   }
 }
 
-// --- MODAL PARA CREAR/EDITAR LA PLANTILLA CAMALEÓN ---
 class _ModalNuevaPlantillaDieta extends StatefulWidget {
   final Dieta? plantillaEdit;
   const _ModalNuevaPlantillaDieta({this.plantillaEdit});
@@ -136,7 +135,6 @@ class _ModalNuevaPlantillaDieta extends StatefulWidget {
   State<_ModalNuevaPlantillaDieta> createState() => _ModalNuevaPlantillaDietaState();
 }
 
-// Clase auxiliar para gestionar los TextFields de las comidas dinámicamente
 class _ComidaController {
   TextEditingController nombreCtrl;
   TextEditingController elementosCtrl;
@@ -176,7 +174,7 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
         if (p.comidas != null) {
           _comidasControllers = p.comidas!.map((c) => _ComidaController(
             TextEditingController(text: c.nombre),
-            TextEditingController(text: c.elementos.join('\n')), // Unimos con saltos de línea
+            TextEditingController(text: c.elementos.join('\n')),
           )).toList();
         }
       }
@@ -280,7 +278,6 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
     );
   }
 
-  // --- UI SI ELIGE MACROS ---
   Widget _buildFormularioMacros() {
     return Column(
       children: [
@@ -298,7 +295,6 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
     );
   }
 
-  // --- UI SI ELIGE CERRADA O PORCIONES ---
   Widget _buildFormularioComidas() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +321,7 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
                   ),
                   TextField(
                     controller: ctrl.elementosCtrl,
-                    maxLines: null, // Permite saltos de línea infinitos
+                    maxLines: null,
                     decoration: InputDecoration(
                       hintText: _tipoSeleccionado == 'cerrada' 
                           ? "100g de pollo\n50g de arroz\n(Un alimento por línea)" 

@@ -29,7 +29,6 @@ class PrincipalTab extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // ESTADO DE CUOTA
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(

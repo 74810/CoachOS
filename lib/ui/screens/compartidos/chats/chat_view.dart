@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../services/chat_service.dart';
 import '../../../../models/mensaje_model.dart';
 import '../../../../config/theme.dart';
-// IMPORTANTE: Importamos la nueva vista de perfil
 import '../perfilUsuario_view.dart';
 
 class ChatView extends StatefulWidget {
@@ -57,7 +56,6 @@ class _ChatViewState extends State<ChatView> {
           icon: const Icon(CupertinoIcons.back, color: AppTheme.primaryBlue),
           onPressed: () => Navigator.pop(context),
         ),
-        // AHORA EL TÍTULO ES CLICABLE Y TE LLEVA AL PERFIL
         title: GestureDetector(
           onTap: () {
             Navigator.push(
@@ -101,7 +99,7 @@ class _ChatViewState extends State<ChatView> {
               }
 
               return ListView.builder(
-                reverse: true, // Empieza desde abajo
+                reverse: true,
                 padding: const EdgeInsets.all(16),
                 itemCount: mensajes.length,
                 itemBuilder: (context, index) {
@@ -114,7 +112,6 @@ class _ChatViewState extends State<ChatView> {
           ),
         ),
         
-        // INPUT DE TEXTO
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(

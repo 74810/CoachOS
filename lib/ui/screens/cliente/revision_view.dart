@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/revision_model.dart'; // Ajusta la ruta
-import '../../../../config/theme.dart';       // Ajusta la ruta
+import '../../../models/revision_model.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,7 +35,6 @@ class RevisionCliente extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // --- SECCIÓN 1: ESTADO ACTUAL Y BOTÓN DE SUBIR ---
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance.collection('usuarios').doc(user.uid).snapshots(),
             builder: (context, snapshot) {
@@ -44,8 +42,6 @@ class RevisionCliente extends StatelessWidget {
               if (!snapshot.hasData || snapshot.data!.data() == null) return const SizedBox();
               
               final data = snapshot.data!.data() as Map<String, dynamic>;
-              
-              // Lectura extra segura de la base de datos
               final nombrePlantilla = data['nombre_plantilla_activa']?.toString();
               final rawParametros = data['parametros_revision'];
               
@@ -94,7 +90,7 @@ class RevisionCliente extends StatelessWidget {
             },
           ),
 
-          // --- SECCIÓN 2: HISTORIAL DE REVISIONES ---
+          //HISTORIAL DE REVISIONES
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -155,7 +151,7 @@ class RevisionCliente extends StatelessWidget {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text("👨‍🏫 Respuesta del Coach:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                                        const Text("Respuesta del Coach:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
                                         const SizedBox(height: 4),
                                         Text(rev.respuestaCoach),
                                       ],
@@ -179,7 +175,7 @@ class RevisionCliente extends StatelessWidget {
   }
 }
 
-// --- MODAL DINÁMICO PARA RELLENAR LA REVISIÓN ---
+//MODAL DINÁMICO PARA RELLENAR LA REVISIÓN
 class _ModalFormularioRevision extends StatefulWidget {
   final List<String> parametrosAsignados;
   const _ModalFormularioRevision({required this.parametrosAsignados});
@@ -193,7 +189,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
   final TextEditingController _sensacionesController = TextEditingController();
   bool _guardando = false; 
 
-  // --- NUEVO: LISTA DE FOTOS ---
+  //LISTA DE FOTOS
   List<File> _fotosSeleccionadas = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -205,9 +201,9 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
     }
   }
 
-  // --- NUEVO: FUNCIÓN PARA ELEGIR FOTOS ---
+  //FUNCIÓN PARA ELEGIR FOTOS
   Future<void> _elegirFotos() async {
-    // Añadimos imageQuality: 50 para que la foto pese la mitad sin perder apenas nitidez
+    //Compresion imageQuality: 50
     final List<XFile> imagenes = await _picker.pickMultiImage(
       imageQuality: 50, 
     );
@@ -215,7 +211,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
     if (imagenes.isNotEmpty) {
       setState(() {
         _fotosSeleccionadas.addAll(imagenes.map((e) => File(e.path)));
-        // Limitamos a un máximo de 5 fotos
+        // Limitado a un máximo de 5 fotos
         if (_fotosSeleccionadas.length > 5) {
           _fotosSeleccionadas = _fotosSeleccionadas.sublist(0, 5);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Solo puedes subir un máximo de 5 fotos."), backgroundColor: Colors.orange));
@@ -239,7 +235,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
     List<String> urlsFotos = [];
 
     try {
-      // --- NUEVO: SUBIR FOTOS A STORAGE PRIMERO ---
+      //SUBIR FOTOS A STORAGE PRIMERO ---
       for (int i = 0; i < _fotosSeleccionadas.length; i++) {
         final ref = FirebaseStorage.instance
             .ref()
@@ -256,7 +252,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
       final data = {
         'fecha': FieldValue.serverTimestamp(),
         'valores_parametros': valoresFinales,
-        'fotos_url': urlsFotos, // Aquí van los links de las fotos
+        'fotos_url': urlsFotos,
         'sensaciones_cliente': _sensacionesController.text,
         'respuesta_coach': '',
         'estado': 'pendiente',
@@ -267,7 +263,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
       if (mounted) {
         Navigator.pop(context); 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Revisión enviada. ¡Gran trabajo!"), backgroundColor: Colors.green),
+          const SnackBar(content: Text("Revisión enviada. ¡Gran trabajo!"), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
@@ -275,7 +271,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
       if (mounted) {
         setState(() => _guardando = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ Error al enviar: $e"), backgroundColor: Colors.red),
+          SnackBar(content: Text("Error al enviar: $e"), backgroundColor: Colors.red),
         );
       }
     }
@@ -330,7 +326,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
                   ),
                   const SizedBox(height: 10),
                   
-                  // --- LA GALERÍA DE FOTOS DEL CLIENTE ---
+                  //GALERÍA DE FOTOS DEL CLIENTE
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,

@@ -14,17 +14,16 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, authSnapshot) {
-        // 1. Esperando a ver si hay alguien logueado
+        
         if (authSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CupertinoActivityIndicator()));
         }
 
-        // 2. Si no hay sesión, al Login
         if (!authSnapshot.hasData) {
           return const LoginView();
         }
 
-        // 3. Si hay sesión, buscamos su documento EXACTO en Firestore
+        //Si hay sesión, buscam su documento EXACTO en Firestore
         return StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance
               .collection('usuarios')
@@ -35,7 +34,6 @@ class AuthWrapper extends StatelessWidget {
               return const Scaffold(body: Center(child: CupertinoActivityIndicator()));
             }
 
-            // 4. SI EL DOCUMENTO EXISTE: Le damos paso a su pantalla
             if (userDoc.hasData && userDoc.data!.exists) {
               final data = userDoc.data!.data() as Map<String, dynamic>;
               final String rol = data['rol']?.toString().trim().toLowerCase() ?? 'cliente';
@@ -45,12 +43,11 @@ class AuthWrapper extends StatelessWidget {
               return const HomeViewCliente();
             }
 
-            // 5. SI EL DOCUMENTO NO EXISTE: Lo expulsamos inmediatamente
             WidgetsBinding.instance.addPostFrameCallback((_) async {
-              await FirebaseAuth.instance.signOut(); // Cerramos la sesión
+              await FirebaseAuth.instance.signOut();
             });
 
-            // Pantalla temporal mientras se ejecuta el cierre de sesión (dura milisegundos)
+            // Pantalla temporal mientras se ejecuta el cierre de sesión
             return const Scaffold(
               body: Center(
                 child: Column(

@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/rutina_model.dart'; 
-import '../../../../config/theme.dart';      
+import '../../../models/rutina_model.dart'; 
+import '../../../config/theme.dart';      
 
 class EntrenoCliente extends StatelessWidget {
   const EntrenoCliente({super.key});
@@ -19,13 +19,13 @@ class EntrenoCliente extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50, // Fondo un poco más gris para que resalten las tarjetas blancas
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text("Mi Entrenamiento", style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        surfaceTintColor: Colors.transparent, // Evita que Flutter le cambie el color al hacer scroll
+        surfaceTintColor: Colors.transparent,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -79,7 +79,7 @@ class EntrenoCliente extends StatelessWidget {
     );
   }
 
-  // --- TARJETA PRINCIPAL DE LA RUTINA ---
+  //TARJETA PRINCIPAL DE LA RUTINA
   Widget _buildCardRutinaCliente(Rutina rutina) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -103,7 +103,6 @@ class EntrenoCliente extends StatelessWidget {
           tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           iconColor: AppTheme.secondaryOrange,
           collapsedIconColor: AppTheme.primaryBlue,
-          // ICONO DE FUEGO EN LA RUTINA
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -151,7 +150,7 @@ class EntrenoCliente extends StatelessWidget {
     );
   }
 
-  // --- TARJETA DE CADA EJERCICIO INDIVIDUAL ---
+  //TARJETA DE CADA EJERCICIO INDIVIDUAL
   Widget _buildFilaEjercicioCliente(EjercicioAsignado ej) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -187,7 +186,7 @@ class EntrenoCliente extends StatelessWidget {
                 )
               ),
               
-              // PÍLDORA AZUL CON SERIES Y REPETICIONES
+              //SERIES Y REPETICIONES
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
@@ -206,7 +205,7 @@ class EntrenoCliente extends StatelessWidget {
           // NOTA ESPECÍFICA DEL EJERCICIO
           if (ej.notaEjercicio.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 14, left: 46), // Alineado a la derecha del icono
+              padding: const EdgeInsets.only(top: 14, left: 46),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

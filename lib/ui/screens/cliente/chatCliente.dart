@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../services/chat_service.dart';
-import '../../../../models/mensaje_model.dart';
-import '../../../../config/theme.dart';
-
-// IMPORTANTE: Añadimos la importación absoluta del perfil para que no falle
+import '../../../services/chat_service.dart';
+import '../../../models/mensaje_model.dart';
+import '../../../config/theme.dart';
 import 'package:coach_os_app/ui/screens/compartidos/perfilUsuario_view.dart';
 
 class ChatCliente extends StatefulWidget {
@@ -30,8 +28,6 @@ class _ChatClienteViewState extends State<ChatCliente> {
     super.initState();
     _cargarDatosEntrenador();
   }
-
-  // --- LÓGICA EXCLUSIVA DEL CLIENTE: BUSCAR A SU ENTRENADOR ---
   Future<void> _cargarDatosEntrenador() async {
     if (_miUid.isEmpty) return;
 
@@ -90,7 +86,6 @@ class _ChatClienteViewState extends State<ChatCliente> {
         backgroundColor: Colors.white,
         elevation: 1,
         centerTitle: true,
-        // AHORA EL TÍTULO ES IDÉNTICO AL DEL COACH Y CLICABLE
         title: GestureDetector(
           onTap: () {
             // Si el cliente tiene entrenador, le abrimos su perfil
@@ -109,7 +104,6 @@ class _ChatClienteViewState extends State<ChatCliente> {
                 style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)
               ),
               const SizedBox(width: 6),
-              // Icono gris para indicar que se puede hacer clic
               if (_entrenadorId != null)
                 const Icon(CupertinoIcons.info_circle_fill, size: 16, color: Colors.grey),
             ],
@@ -126,7 +120,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
     );
   }
 
-  // --- CUERPO DEL CHAT ---
+  //CUERPO DEL CHAT
   Widget _buildCuerpoChat() {
     return Column(
       children: [
@@ -147,7 +141,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
               }
 
               return ListView.builder(
-                reverse: true, // Empieza desde abajo
+                reverse: true, 
                 padding: const EdgeInsets.all(16),
                 itemCount: mensajes.length,
                 itemBuilder: (context, index) {
@@ -159,8 +153,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
             },
           ),
         ),
-        
-        // --- INPUT DE TEXTO ---
+
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
@@ -197,7 +190,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
     );
   }
 
-  // --- BURBUJAS DE MENSAJE ---
+  //BURBUJAS DE MENSAJE
   Widget _buildBurbuja(String texto, bool esMio) {
     return Align(
       alignment: esMio ? Alignment.centerRight : Alignment.centerLeft,
@@ -223,7 +216,7 @@ class _ChatClienteViewState extends State<ChatCliente> {
     );
   }
 
-  // --- VISTA POR SI EL CLIENTE AÚN NO TIENE COACH ---
+  //VISTA POR SI EL CLIENTE AÚN NO TIENE COACH
   Widget _buildPantallaSinEntrenador() {
     return Center(
       child: Column(

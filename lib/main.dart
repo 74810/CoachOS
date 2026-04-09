@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Añadido para poder cerrar sesión
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:coach_os_app/services/auth_wrapper.dart';
 import 'package:coach_os_app/ui/screens/coach/home_view.dart';
 import 'package:coach_os_app/ui/screens/login_view.dart';
@@ -9,7 +8,7 @@ import 'firebase_options.dart';
 import 'config/theme.dart';
 
 void main() async {
-  // Asegura que los widgets de Flutter estén listos antes de inicializar Firebase
+  // Asegura que los widgets de Flutter estén listos
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inicializa la conexión con Firebase

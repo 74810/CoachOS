@@ -25,7 +25,7 @@ class _RegistroEntrenadorViewState extends State<RegistroEntrenadorView> {
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    // 1. Validaciones básicas
+    //Validaciones básicas
     if (nombre.isEmpty || email.isEmpty || password.isEmpty) {
       _mostrarError("Por favor, rellena todos los campos");
       return;
@@ -42,7 +42,7 @@ class _RegistroEntrenadorViewState extends State<RegistroEntrenadorView> {
     setState(() => _isLoading = true);
 
     try {
-      // 2. Crear usuario en Firebase Auth
+      //Crear usuario en Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -50,17 +50,17 @@ class _RegistroEntrenadorViewState extends State<RegistroEntrenadorView> {
 
       final String uid = userCredential.user!.uid;
 
-      // 3. Guardar datos en Firestore con el ROL de Coach
+      //Guardar datos en Firestore con el ROL de Coach
       await FirebaseFirestore.instance.collection('usuarios').doc(uid).set({
         'nombre': nombre,
         'email': email,
-        'rol': 'coach', // <--- CLAVE PARA SABER QUE ES ENTRENADOR
+        'rol': 'coach',
         'fecha_registro': FieldValue.serverTimestamp(),
       });
 
-      // 4. Volver al Login (o ir directo al Home)
+      //Volver al Login
       if (mounted) {
-        Navigator.pop(context); // Vuelve a la pantalla de login
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("¡Cuenta creada! Inicia sesión ahora."), backgroundColor: Colors.green),
         );

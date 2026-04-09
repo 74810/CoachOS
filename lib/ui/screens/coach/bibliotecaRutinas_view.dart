@@ -126,7 +126,7 @@ class BibliotecaRutinasView extends StatelessWidget {
   }
 }
 
-// --- MODAL PARA CREAR/EDITAR LA PLANTILLA ---
+//MODAL PARA CREAR/EDITAR LA PLANTILLA
 class _ModalNuevaPlantilla extends StatefulWidget {
   final Rutina? plantillaEdit;
   const _ModalNuevaPlantilla({this.plantillaEdit});

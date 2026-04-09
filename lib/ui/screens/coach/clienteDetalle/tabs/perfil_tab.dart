@@ -13,7 +13,6 @@ class PerfilTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        //BLOQUE DE INFORMACIÓN MÉDICA / PERSONAL
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -119,7 +118,7 @@ class PerfilTab extends StatelessWidget {
   }
 }
 
-// --- WIDGETS AUXILIARES ---
+//WIDGETS AUXILIARES
 
 class _FilaDato extends StatelessWidget {
   final String titulo;

@@ -76,7 +76,6 @@ class _ChatsViewState extends State<ChatsView> {
                       title: Text("${cliente.nombre} ${cliente.apellidos}", style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(cliente.ultimoMensaje, maxLines: 1, overflow: TextOverflow.ellipsis),
                       onTap: () {
-                        // AQUÍ EL CAMBIO: receptorId
                         Navigator.push(context, CupertinoPageRoute(builder: (_) => ChatView(receptorId: cliente.id, nombreReceptor: cliente.nombre)));
                       },
                     ),
@@ -133,7 +132,6 @@ class _ChatsViewState extends State<ChatsView> {
                             Navigator.push(
                               context, 
                               CupertinoPageRoute(
-                                // AQUÍ EL CAMBIO: receptorId
                                 builder: (_) => ChatView(
                                   receptorId: cliente.id,
                                   nombreReceptor: cliente.nombre

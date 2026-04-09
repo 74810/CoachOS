@@ -140,7 +140,7 @@ class DespachoView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // DISTRIBUCIÓN DE PLANES DINÁMICO
+                  // DISTRIBUCIÓN DE PLANES
                   if (totalClientes > 0) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -187,8 +187,8 @@ class DespachoView extends StatelessWidget {
                                   padding: const EdgeInsets.only(bottom: 8.0),
                                   child: _Leyenda(
                                     coloresGrafica[index % coloresGrafica.length], 
-                                    mapEntry.key, // Nombre de la tarifa
-                                    "${mapEntry.value} clientes" // Cantidad
+                                    mapEntry.key,
+                                    "${mapEntry.value} clientes"
                                   ),
                                 );
                               }).toList(),
