@@ -2,192 +2,216 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:coach_os_app/config/theme.dart';
+import '../../../../config/theme.dart';
 
-class SuscripcionesView extends StatelessWidget {
+class SuscripcionesView extends StatefulWidget {
   final String rol;
   const SuscripcionesView({super.key, required this.rol});
 
   @override
+  State<SuscripcionesView> createState() => _SuscripcionesViewState();
+}
+
+class _SuscripcionesViewState extends State<SuscripcionesView> {
+  bool _actualizando = false;
+
+  // Definición de los planes para el Entrenador
+  final List<Map<String, dynamic>> _planesCoach = [
+    {
+      'id': 'cantera',
+      'nombre': 'Cantera',
+      'precio': '0€',
+      'limite': '3 clientes',
+      'color': Colors.grey,
+      'ventajas': ['Gestión básica', 'Revisiones ilimitadas', 'Chat con clientes'],
+    },
+    {
+      'id': 'rookie',
+      'nombre': 'Rookie',
+      'precio': '19.99€/mes',
+      'limite': '15 clientes',
+      'color': Colors.blue,
+      'ventajas': ['Soporte prioritario', 'Estadísticas avanzadas', 'Hasta 15 atletas'],
+    },
+    {
+      'id': 'all-star',
+      'nombre': 'All-Star',
+      'precio': '39.99€/mes',
+      'limite': '30 clientes',
+      'color': AppTheme.secondaryOrange,
+      'ventajas': ['Personalización total', 'Exportación de datos', 'Hasta 30 atletas'],
+    },
+    {
+      'id': 'hall of fame',
+      'nombre': 'Hall of Fame',
+      'precio': '79.99€/mes',
+      'limite': 'Ilimitado',
+      'color': Colors.purple,
+      'ventajas': ['Sin límites', 'Acceso anticipado', 'Marketing incluido'],
+    },
+  ];
+
+  Future<void> _cambiarPlan(String planId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() => _actualizando = true);
+
+    try {
+      await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).update({
+        'plan_suscripcion': planId,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Plan actualizado a ${planId.toUpperCase()}"), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al actualizar: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _actualizando = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final bool esCoach = rol == 'entrenador';
+    final bool esEntrenador = widget.rol == 'entrenador';
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      backgroundColor: AppTheme.lightBlue,
       appBar: AppBar(
-        title: Text(esCoach ? "Planes de Negocio" : "Mi Tarifa Activa"),
+        title: Text(esEntrenador ? "Planes de Suscripción" : "Mi Tarifa"),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.primaryBlue,
       ),
-      body: esCoach ? _buildCoachView(context) : _buildClienteView(),
-    );
-  }
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance.collection('usuarios').doc(user?.uid).snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const Center(child: CupertinoActivityIndicator());
 
-  //VISTA PARA EL CLIENTE
-  Widget _buildClienteView() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return const Center(child: Text("Error de sesión"));
+          final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+          final planActual = data['plan_suscripcion'] ?? 'cantera';
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('usuarios').doc(user.uid).snapshots(),
-      builder: (context, snapshotUsuario) {
-        if (!snapshotUsuario.hasData) return const Center(child: CupertinoActivityIndicator());
-        
-        final data = snapshotUsuario.data?.data() as Map<String, dynamic>? ?? {};
-        
-        final String tarifaActual = data['tipo_tarifa']?.toString() ?? "Sin Tarifa";
-        final dynamic precioRaw = data['precio_tarifa'];
-        final String precioActual = precioRaw != null ? precioRaw.toString() : "0";
-        final String entrenadorId = data['entrenador_id']?.toString() ?? "";
+          if (!esEntrenador) {
+            return _buildVistaCliente(data);
+          }
 
-        return ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            //TARIFA ACTUAL
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primaryBlue, AppTheme.mediumBlue],
-                  begin: Alignment.topLeft, end: Alignment.bottomRight
+          return ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: _planesCoach.length,
+            itemBuilder: (context, index) {
+              final plan = _planesCoach[index];
+              final bool esElActual = planActual == plan['id'];
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: esElActual ? Border.all(color: plan['color'], width: 2) : null,
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
                 ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: AppTheme.primaryBlue.withOpacity(0.3), blurRadius: 10)]
-              ),
-              child: Column(
-                children: [
-                  const Text("MI PLAN ACTUAL", style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                  const SizedBox(height: 10),
-                  Text(tarifaActual.toUpperCase(), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
-                  const SizedBox(height: 4),
-                  Text("$precioActual€ / mes", style: const TextStyle(fontSize: 20, color: AppTheme.secondaryOrange, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 30),
-            const Text("PLANES DISPONIBLES DE MI COACH", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
-            const SizedBox(height: 15),
-
-            // LISTA DE TARIFAS DEL COACH
-            if (entrenadorId.isEmpty)
-              const Center(child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Text("Aún no tienes un entrenador asignado para ver sus planes.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
-              ))
-            else
-              StreamBuilder<QuerySnapshot>(
-                // Traemos todas las tarifas visibles
-                stream: FirebaseFirestore.instance.collection('tarifas')
-                    .where('esVisible', isEqualTo: true) 
-                    .snapshots(),
-                builder: (context, snapshotTarifas) {
-                  if (snapshotTarifas.connectionState == ConnectionState.waiting) return const CupertinoActivityIndicator();
-                  
-                  final tarifas = snapshotTarifas.data?.docs.where((doc) {
-                    final t = doc.data() as Map<String, dynamic>;
-                    final idCoachTarifa = t['entrenador_id'] ?? '';
-                    return idCoachTarifa == entrenadorId;
-                  }).toList() ?? [];
-                  
-                  if (tarifas.isEmpty) return const Text("Tu entrenador no ha publicado planes de suscripción todavía.");
-
-                  return Column(
-                    children: tarifas.map((doc) {
-                      final t = doc.data() as Map<String, dynamic>;
-                      bool esLaMia = t['nombre'] == tarifaActual;
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: esLaMia ? Border.all(color: AppTheme.secondaryOrange, width: 2) : null,
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  children: [
+                    // Cabecera del plan
+                    Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: plan['color'].withOpacity(0.1),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(plan['nombre'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: plan['color'])),
+                          if (esElActual)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(color: plan['color'], borderRadius: BorderRadius.circular(10)),
+                              child: const Text("ACTUAL", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            )
+                        ],
+                      ),
+                    ),
+                    
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(plan['precio'], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                              Text(plan['limite'], style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+                            ],
+                          ),
+                          const Divider(height: 30),
+                          ...List.generate(plan['ventajas'].length, (i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Row(
                               children: [
-                                Text(t['nombre'] ?? 'Plan', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryBlue)),
-                                Text("${t['precio'] ?? 0}€", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.secondaryOrange)),
+                                Icon(Icons.check_circle, color: plan['color'], size: 18),
+                                const SizedBox(width: 10),
+                                Text(plan['ventajas'][i], style: const TextStyle(fontSize: 14)),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(t['descripcion'] ?? 'Sin descripción', style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                            const SizedBox(height: 16),
-                            if (!esLaMia)
-                              SizedBox(
-                                width: double.infinity,
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  color: AppTheme.lightBlue,
-                                  child: const Text("Seleccionar este plan", style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 14)),
-                                  onPressed: () async {
-                                    // Actualizar tarifa en Firebase
-                                    await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).update({
-                                      'tipo_tarifa': t['nombre'],
-                                      'precio_tarifa': t['precio'],
-                                    });
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Plan actualizado. Avisa a tu Coach por el chat."), backgroundColor: Colors.green));
-                                    }
-                                  },
-                                ),
-                              )
-                            else
-                              const Center(child: Text("Este es tu plan actual", style: TextStyle(color: AppTheme.secondaryOrange, fontWeight: FontWeight.bold, fontSize: 13))),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              )
-          ],
-        );
-      },
-    );
-  }
-
-  // --- VISTA PARA EL COACH ---
-  Widget _buildCoachView(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        const Text("Elige el nivel de tu academia", style: TextStyle(color: Colors.grey)),
-        const SizedBox(height: 20),
-        _buildPlanCard(context, title: "CANTERA", price: "GRATIS", limit: "3 alumnos", desc: "Primeros pasos.", color: Colors.grey, isCurrent: true),
-        _buildPlanCard(context, title: "DRAFT", price: "14,90€", limit: "15 alumnos", desc: "Gestión total.", color: AppTheme.mediumBlue, isCurrent: false),
-        _buildPlanCard(context, title: "PRO", price: "29,90€", limit: "Ilimitados", desc: "Sin límites.", color: AppTheme.secondaryOrange, isCurrent: false),
-      ],
-    );
-  }
-
-  Widget _buildPlanCard(BuildContext context, {required String title, required String price, required String limit, required String desc, required Color color, required bool isCurrent}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: isCurrent ? Border.all(color: color, width: 2) : null,
+                          )),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: CupertinoButton(
+                              color: esElActual ? Colors.grey.shade300 : plan['color'],
+                              onPressed: (esElActual || _actualizando) ? null : () => _cambiarPlan(plan['id']),
+                              child: _actualizando && !esElActual 
+                                ? const CupertinoActivityIndicator(color: Colors.white)
+                                : Text(esElActual ? "Plan Activo" : "Seleccionar Plan", style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
-              if (isCurrent) const Badge(label: Text("ACTUAL"), backgroundColor: Colors.green),
-            ],
-          ),
-          Text(price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          Text(limit, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 10),
-          Text(desc, style: const TextStyle(color: Colors.grey)),
-        ],
+    );
+  }
+
+  // Vista simplificada para el Cliente
+  Widget _buildVistaCliente(Map<String, dynamic> data) {
+    final int precio = data['precio_tarifa'] ?? 0;
+    final String tipo = data['tipo_tarifa'] ?? 'Mensual';
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(30),
+        padding: const EdgeInsets.all(30),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(CupertinoIcons.creditcard, size: 50, color: AppTheme.primaryBlue),
+            const SizedBox(height: 20),
+            const Text("Tu suscripción actual", style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 10),
+            Text("$precio€", style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+            Text("Tarifa $tipo", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 30),
+            const Text("Los pagos se gestionan directamente con tu entrenador.", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
       ),
     );
   }

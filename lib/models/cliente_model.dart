@@ -13,8 +13,8 @@ class Cliente {
   final String lesionesPrevias;
   final String patologias;
   final String ultimoMensaje;
-  // CAMBIO 1: Ahora es de tipo DateTime para poder ordenar los chats correctamente
   final DateTime fechaUltimoMensaje; 
+  final DateTime fechaUltimoPago; 
   final int precioTarifa;
   final String tipoTarifa;
 
@@ -32,21 +32,27 @@ class Cliente {
     required this.patologias,
     required this.ultimoMensaje,
     required this.fechaUltimoMensaje,
+    required this.fechaUltimoPago,
     required this.precioTarifa,
     required this.tipoTarifa,
   });
 
   factory Cliente.fromFirestore(Map<String, dynamic> data, String id) {
-    // CAMBIO 2: Conversor inteligente de fechas (Timestamp de Firebase a DateTime de Dart)
     DateTime fechaParseada = DateTime.fromMillisecondsSinceEpoch(0);
     var fechaData = data['fecha_ultimo_mensaje'];
-    
     if (fechaData != null) {
       if (fechaData is Timestamp) {
         fechaParseada = fechaData.toDate();
       } else if (fechaData is String && fechaData.isNotEmpty) {
         fechaParseada = DateTime.tryParse(fechaData) ?? DateTime.fromMillisecondsSinceEpoch(0);
       }
+    }
+
+    // Extraemos la fecha real de pago (por defecto hace 31 días si nunca pagó)
+    DateTime fechaPagoParseada = DateTime.now().subtract(const Duration(days: 31)); 
+    var fechaPagoData = data['fecha_ultimo_pago'];
+    if (fechaPagoData != null && fechaPagoData is Timestamp) {
+      fechaPagoParseada = fechaPagoData.toDate();
     }
 
     return Cliente(
@@ -62,13 +68,20 @@ class Cliente {
       lesionesPrevias: data['lesiones_previas'] ?? '',
       patologias: data['patologias'] ?? '',
       ultimoMensaje: data['ultimo_mensaje'] ?? '',
-      fechaUltimoMensaje: fechaParseada, // Asignamos la fecha parseada
+      fechaUltimoMensaje: fechaParseada, 
+      fechaUltimoPago: fechaPagoParseada,
       precioTarifa: data['precio_tarifa'] ?? 0,
       tipoTarifa: data['tipo_tarifa'] ?? '',
     );
   }
 
-  double get precioTarifaDouble {
-    return precioTarifa.toDouble();
+  double get precioTarifaDouble => precioTarifa.toDouble();
+
+  // LÓGICA MAESTRA DEL SEMÁFORO (Unificada para toda la app)
+  String get estadoSuscripcionReal {
+    int diasDesdePago = DateTime.now().difference(fechaUltimoPago).inDays;
+    if (diasDesdePago < 30) return 'activo'; 
+    if (diasDesdePago <= 33) return 'aviso';
+    return 'inactivo';                       
   }
 }

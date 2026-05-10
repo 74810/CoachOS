@@ -6,6 +6,7 @@ import '../../../models/revision_model.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:coach_os_app/ui/widgets/visualizador_imagen.dart';
 
 class RevisionCliente extends StatelessWidget {
   const RevisionCliente({super.key});
@@ -18,6 +19,17 @@ class RevisionCliente extends StatelessWidget {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => _ModalFormularioRevision(parametrosAsignados: parametros),
     );
+  }
+
+  DateTime _calcularUltimaRevision(Map<String, dynamic> data, int frecuencia) {
+    if (data['fecha_ultima_revision'] != null) {
+      return (data['fecha_ultima_revision'] as Timestamp).toDate();
+    } else if (data.containsKey('fecha_ultima_revision')) {
+      return DateTime.now(); 
+    } else {
+      int diasRestar = frecuencia == 0 ? 1 : frecuencia + 1;
+      return DateTime.now().subtract(Duration(days: diasRestar));
+    }
   }
 
   @override
@@ -35,6 +47,7 @@ class RevisionCliente extends StatelessWidget {
       ),
       body: Column(
         children: [
+          // PANEL SUPERIOR CON TEMPORIZADOR Y BLOQUEO
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance.collection('usuarios').doc(user.uid).snapshots(),
             builder: (context, snapshot) {
@@ -55,12 +68,15 @@ class RevisionCliente extends StatelessWidget {
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
-                  child: const Center(
-                    child: Text("Tu entrenador aún no te ha asignado\nuna plantilla de revisión.", 
-                      textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
-                  ),
+                  child: const Center(child: Text("Tu entrenador aún no te ha asignado\nuna plantilla de revisión.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey))),
                 );
               }
+
+              int frecuencia = data['frecuencia_revisiones'] ?? 15;
+              bool esLibre = frecuencia == 0;
+
+              DateTime ultimaRev = _calcularUltimaRevision(data, frecuencia);
+              DateTime fechaObjetivo = ultimaRev.add(Duration(days: frecuencia));
 
               return Container(
                 margin: const EdgeInsets.all(16),
@@ -70,27 +86,54 @@ class RevisionCliente extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
                 ),
-                child: Column(
-                  children: [
-                    const Icon(CupertinoIcons.doc_chart_fill, color: Colors.purple, size: 40),
-                    const SizedBox(height: 10),
-                    Text("Plantilla Activa: $nombrePlantilla", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: CupertinoButton(
-                        color: Colors.purple,
-                        onPressed: () => _abrirFormularioRevision(context, parametros),
-                        child: const Text("+ Rellenar Revisión", style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
+                child: StreamBuilder(
+                  stream: Stream.periodic(const Duration(seconds: 1)),
+                  builder: (context, _) {
+                    final ahora = DateTime.now();
+                    
+                    // MAGIA: Modo libre ignora el tiempo
+                    final tocaRevision = esLibre || ahora.isAfter(fechaObjetivo);
+                    final diferencia = esLibre ? Duration.zero : fechaObjetivo.difference(ahora);
+
+                    return Column(
+                      children: [
+                        const Icon(CupertinoIcons.doc_chart_fill, color: Colors.purple, size: 40),
+                        const SizedBox(height: 10),
+                        Text("Plantilla Activa: $nombrePlantilla", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 16),
+                        
+                        if (tocaRevision) ...[
+                          Text(esLibre ? "¡Modo Libre Activado!" : "¡El formulario está abierto!", style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: CupertinoButton(
+                              color: Colors.purple,
+                              onPressed: () => _abrirFormularioRevision(context, parametros),
+                              child: const Text("+ Rellenar Revisión", style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ] else ...[
+                          const Text("Aún no es momento de subir la revisión", style: TextStyle(color: Colors.grey)),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(color: Colors.purple.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                            child: Text(
+                              "${diferencia.inDays}d ${diferencia.inHours % 24}h ${diferencia.inMinutes % 60}m ${diferencia.inSeconds % 60}s",
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.purple),
+                            ),
+                          )
+                        ]
+                      ],
+                    );
+                  }
                 ),
               );
             },
           ),
 
-          //HISTORIAL DE REVISIONES
+          // HISTORIAL DE REVISIONES
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -127,7 +170,6 @@ class RevisionCliente extends StatelessWidget {
                         subtitle: Text(esPendiente ? "Esperando respuesta del coach..." : "¡Revisada!", style: TextStyle(color: esPendiente ? Colors.orange : Colors.green, fontSize: 12)),
                         children: [
                           const Divider(),
-                          // Mostrar datos enviados
                           Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
@@ -137,11 +179,34 @@ class RevisionCliente extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 ...rev.valoresParametros.entries.map((e) => Text("• ${e.key}: ${e.value}", style: const TextStyle(fontSize: 14))),
                                 
+                                if (rev.fotosUrl.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  const Text("Tus Fotos:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    height: 80,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: rev.fotosUrl.length,
+                                      itemBuilder: (context, imgIndex) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(right: 8.0),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(context, CupertinoPageRoute(fullscreenDialog: true, builder: (context) => VisualizadorImagen(imageUrl: rev.fotosUrl[imgIndex])));
+                                            },
+                                            child: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(rev.fotosUrl[imgIndex], width: 80, height: 80, fit: BoxFit.cover)),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+
                                 const SizedBox(height: 16),
                                 const Text("Tus Sensaciones:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
                                 Text(rev.sensacionesCliente.isEmpty ? "No escribiste nada." : rev.sensacionesCliente, style: const TextStyle(fontStyle: FontStyle.italic)),
                                 
-                                // Mostrar respuesta del coach si ya la hay
                                 if (!esPendiente && rev.respuestaCoach.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   Container(
@@ -175,7 +240,7 @@ class RevisionCliente extends StatelessWidget {
   }
 }
 
-//MODAL DINÁMICO PARA RELLENAR LA REVISIÓN
+//MODAL DINÁMICO PARA RELLENAR LA REVISIÓN (SIN CAMBIOS)
 class _ModalFormularioRevision extends StatefulWidget {
   final List<String> parametrosAsignados;
   const _ModalFormularioRevision({required this.parametrosAsignados});
@@ -189,7 +254,6 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
   final TextEditingController _sensacionesController = TextEditingController();
   bool _guardando = false; 
 
-  //LISTA DE FOTOS
   List<File> _fotosSeleccionadas = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -201,17 +265,11 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
     }
   }
 
-  //FUNCIÓN PARA ELEGIR FOTOS
   Future<void> _elegirFotos() async {
-    //Compresion imageQuality: 50
-    final List<XFile> imagenes = await _picker.pickMultiImage(
-      imageQuality: 50, 
-    );
-    
+    final List<XFile> imagenes = await _picker.pickMultiImage(imageQuality: 50);
     if (imagenes.isNotEmpty) {
       setState(() {
         _fotosSeleccionadas.addAll(imagenes.map((e) => File(e.path)));
-        // Limitado a un máximo de 5 fotos
         if (_fotosSeleccionadas.length > 5) {
           _fotosSeleccionadas = _fotosSeleccionadas.sublist(0, 5);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Solo puedes subir un máximo de 5 fotos."), backgroundColor: Colors.orange));
@@ -235,7 +293,6 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
     List<String> urlsFotos = [];
 
     try {
-      //SUBIR FOTOS A STORAGE PRIMERO ---
       for (int i = 0; i < _fotosSeleccionadas.length; i++) {
         final ref = FirebaseStorage.instance
             .ref()
@@ -248,7 +305,6 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
         urlsFotos.add(url);
       }
 
-      // GUARDAR TODO EN FIRESTORE
       final data = {
         'fecha': FieldValue.serverTimestamp(),
         'valores_parametros': valoresFinales,
@@ -259,20 +315,20 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
       };
 
       await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).collection('revisiones').add(data);
+      
+      await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).update({
+        'fecha_ultima_revision': FieldValue.serverTimestamp(),
+      });
           
       if (mounted) {
         Navigator.pop(context); 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Revisión enviada. ¡Gran trabajo!"), backgroundColor: Colors.green),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Revisión enviada. ¡Gran trabajo!"), backgroundColor: Colors.green));
       }
     } catch (e) {
       print("Error enviando revisión: $e");
       if (mounted) {
         setState(() => _guardando = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al enviar: $e"), backgroundColor: Colors.red),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al enviar: $e"), backgroundColor: Colors.red));
       }
     }
   }
@@ -314,7 +370,7 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
 
                   const SizedBox(height: 20),
                   Row(
@@ -326,7 +382,6 @@ class _ModalFormularioRevisionState extends State<_ModalFormularioRevision> {
                   ),
                   const SizedBox(height: 10),
                   
-                  //GALERÍA DE FOTOS DEL CLIENTE
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,

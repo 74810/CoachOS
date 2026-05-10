@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coach_os_app/ui/screens/coach/clienteDetalle/tabs/revision_tab.dart';
+import 'package:coach_os_app/ui/screens/compartidos/perfilUsuario_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../models/cliente_model.dart';
@@ -10,7 +12,6 @@ import '../../compartidos/chats/chat_view.dart';
 
 class ClienteDetalleView extends StatefulWidget {
   final Cliente cliente;
-
   const ClienteDetalleView({super.key, required this.cliente});
 
   @override
@@ -18,69 +19,64 @@ class ClienteDetalleView extends StatefulWidget {
 }
 
 class _ClienteDetalleViewState extends State<ClienteDetalleView> {
-  int _indiceSeleccionado = 0; // 0: Perfil, 1: Entreno, 2: Dieta, 3: Revisión, 4: Chat
-
-  String get _estadoSuscripcion {
-    if (widget.cliente.cuotaPagada) return 'activo';
-
-    try {
-      if (widget.cliente.fechaUltimoMensaje.millisecondsSinceEpoch == 0) return 'inactivo';
-      DateTime fechaCaducidad = widget.cliente.fechaUltimoMensaje;
-      final diasDesdeCaducidad = DateTime.now().difference(fechaCaducidad).inDays;
-
-      int margenEntrenador = 3; 
-
-      if (diasDesdeCaducidad <= margenEntrenador) {
-        return 'aviso';
-      } else {
-        return 'inactivo';
-      }
-    } catch (e) {
-      return 'inactivo';
-    }
-  }
+  int _indiceSeleccionado = 0; 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.lightBlue,
-      
-      // CABECERA PERSONALIZADA CON SEMÁFORO
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(CupertinoIcons.back, color: AppTheme.primaryBlue),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: const Icon(CupertinoIcons.back, color: AppTheme.primaryBlue), onPressed: () => Navigator.pop(context)),
         titleSpacing: 0,
         title: Row(
           children: [
-            const CircleAvatar(
-              radius: 18,
-              backgroundColor: AppTheme.mediumBlue,
-              child: Icon(CupertinoIcons.person_fill, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                widget.cliente.nombre,
-                style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 18),
-                overflow: TextOverflow.ellipsis,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(context, CupertinoPageRoute(builder: (context) => PerfilUsuarioView(uid: widget.cliente.id)));
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(left: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(color: AppTheme.primaryBlue.withOpacity(0.05), borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircleAvatar(radius: 16, backgroundColor: AppTheme.mediumBlue, child: Icon(CupertinoIcons.person_fill, color: Colors.white, size: 16)),
+                      const SizedBox(width: 8),
+                      Flexible(child: Text(widget.cliente.nombre, style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)),
+                      const SizedBox(width: 6),
+                      const Icon(CupertinoIcons.info_circle_fill, size: 18, color: AppTheme.primaryBlue),
+                    ],
+                  ),
+                ),
               ),
             ),
-            _buildSemaforo(_estadoSuscripcion),
+            const SizedBox(width: 10),
+            
+            // SEMÁFORO EN TIEMPO REAL
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance.collection('usuarios').doc(widget.cliente.id).snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return _buildSemaforo(widget.cliente.estadoSuscripcionReal);
+                }
+                final data = snapshot.data!.data() as Map<String, dynamic>;
+                final clienteActualizado = Cliente.fromFirestore(data, widget.cliente.id);
+                return _buildSemaforo(clienteActualizado.estadoSuscripcionReal);
+              },
+            ),
             const SizedBox(width: 16),
           ],
         ),
       ),
       
-      //MENÚ INFERIOR
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _indiceSeleccionado,
         onTap: (index) => setState(() => _indiceSeleccionado = index),
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
         selectedItemColor: AppTheme.secondaryOrange,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
@@ -94,15 +90,10 @@ class _ClienteDetalleViewState extends State<ClienteDetalleView> {
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.chat_bubble_2_fill), label: 'Chat'),
         ],
       ),
-
-      //CUERPO PRINCIPAL
-      body: SafeArea(
-        child: _construirCuerpoPestana(),
-      ),
+      body: SafeArea(child: _construirCuerpoPestana()),
     );
   }
 
-  //CONTROLADOR DE PESTAÑAS
   Widget _construirCuerpoPestana() {
     switch (_indiceSeleccionado) {
       case 0: return PerfilTab(cliente: widget.cliente);
@@ -114,7 +105,6 @@ class _ClienteDetalleViewState extends State<ClienteDetalleView> {
     }
   }
 
-  //WIDGET DEL SEMÁFORO DE SUSCRIPCIÓN
   Widget _buildSemaforo(String estado) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -137,8 +127,7 @@ class _LuzSemaforo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 12,
-      height: 12,
+      width: 12, height: 12,
       decoration: BoxDecoration(
         color: encendida ? color : Colors.grey[300],
         shape: BoxShape.circle,

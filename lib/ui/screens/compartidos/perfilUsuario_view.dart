@@ -8,6 +8,18 @@ class PerfilUsuarioView extends StatelessWidget {
 
   const PerfilUsuarioView({super.key, required this.uid});
 
+  // Función para calcular la edad automáticamente a partir de la fecha de nacimiento
+  String _calcularEdad(Timestamp? timestamp) {
+    if (timestamp == null) return "No especificada";
+    final birthDate = timestamp.toDate();
+    final today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--;
+    }
+    return "$age años";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,15 +35,27 @@ class PerfilUsuarioView extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('usuarios').doc(uid).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CupertinoActivityIndicator());
+          
           if (!snapshot.hasData || !snapshot.data!.exists) return const Center(child: Text("Usuario no encontrado"));
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
           
+          // Detectar el rol
           final String rol = data['rol']?.toString().toLowerCase() ?? '';
-          final bool esCoach = rol == 'entrenador' || rol == 'coach';
+          final bool esEntrenador = rol == 'entrenador';
 
-          final biografia = data['descripcion'] ?? '';
-          final horario = data['horario'] ?? '';
+          // Datos comunes
+          final telefono = data['telefono']?.toString() ?? '';
+
+          // Datos de Entrenador
+          final biografia = data['descripcion']?.toString() ?? '';
+          final horario = data['horario']?.toString() ?? '';
+
+          // Datos de Cliente (La Anamnesis)
+          final altura = data['altura']?.toString() ?? '';
+          final lesiones = data['lesiones']?.toString() ?? '';
+          final alergias = data['alergias']?.toString() ?? '';
+          final edad = _calcularEdad(data['fecha_nacimiento'] as Timestamp?);
 
           return ListView(
             padding: const EdgeInsets.all(20),
@@ -50,36 +74,46 @@ class PerfilUsuarioView extends StatelessWidget {
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
               ),
               Text(
-                esCoach ? "Entrenador / Coach" : "Cliente",
+                esEntrenador ? "Entrenador" : "Cliente",
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey, fontSize: 16),
               ),
               const SizedBox(height: 30),
               
-              // INFORMACIÓN DE CONTACTO
               const Text("CONTACTO", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
               const SizedBox(height: 10),
               _buildCajaInfo("Email", data['email'] ?? "No disponible", CupertinoIcons.mail),
-              _buildCajaInfo("Teléfono", data['telefono'] ?? "No disponible", CupertinoIcons.phone),
+              _buildCajaInfo("Teléfono", telefono.isEmpty ? "No especificado" : telefono, CupertinoIcons.phone),
               
               const SizedBox(height: 20),
 
-              if (esCoach) ...[
+              if (esEntrenador) ...[
                 const Text("DETALLES PROFESIONALES", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
                 const SizedBox(height: 10),
-                
                 _buildCajaInfo(
                   "Biografía", 
-                  biografia.toString().isEmpty ? "El coach aún no ha escrito su biografía." : biografia, 
+                  biografia.isEmpty ? "El entrenador aún no ha escrito su biografía." : biografia, 
                   CupertinoIcons.doc_text
                 ),
-                
                 _buildCajaInfo(
                   "Horario de atención", 
-                  horario.toString().isEmpty ? "No especificado." : horario, 
+                  horario.isEmpty ? "No especificado." : horario, 
                   CupertinoIcons.clock
                 ),
-              ],
+              ] else ...[
+                // SI ES CLIENTE: MOSTRAMOS SU FICHA CLÍNICA
+                const Text("DATOS CLÍNICOS Y FÍSICOS", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: _buildCajaInfo("Edad", edad, CupertinoIcons.calendar)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildCajaInfo("Altura", altura.isEmpty ? "No esp." : "$altura cm", CupertinoIcons.arrow_up_down)),
+                  ],
+                ),
+                _buildCajaInfo("Lesiones / Patologías", lesiones.isEmpty ? "Ninguna registrada." : lesiones, CupertinoIcons.bandage),
+                _buildCajaInfo("Alergias / Intolerancias", alergias.isEmpty ? "Ninguna registrada." : alergias, CupertinoIcons.exclamationmark_triangle),
+              ]
             ],
           );
         },
@@ -87,6 +121,7 @@ class PerfilUsuarioView extends StatelessWidget {
     );
   }
 
+  // Widget visual para mostrar cada dato
   Widget _buildCajaInfo(String titulo, String valor, IconData icono) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

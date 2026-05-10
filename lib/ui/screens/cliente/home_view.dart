@@ -6,9 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dieta_view.dart';
 import '../../../config/theme.dart';
-import 'principal_tab.dart'; 
+import 'principal_view.dart'; 
+
 class HomeViewCliente extends StatefulWidget {
   const HomeViewCliente({super.key});
+
+  // Controlador mágico para cambiar de tab desde cualquier pantalla hija
+  static _HomeViewClienteState of(BuildContext context) {
+    return context.findAncestorStateOfType<_HomeViewClienteState>()!;
+  }
 
   @override
   State<HomeViewCliente> createState() => _HomeViewClienteState();
@@ -18,13 +24,20 @@ class _HomeViewClienteState extends State<HomeViewCliente> {
   int _selectedIndex = 0;
 
   final List<Widget> _views = [
-    const PrincipalTab(), 
+    const PrincipalView(), 
     const DietaCliente(),
     const EntrenoCliente(),
     const RevisionCliente(),
     const ChatCliente(),
     const AjustesView(rol: 'cliente'),
   ];
+
+  // Función para mover la pestaña (Llamada desde principal_view)
+  void cambiarTab(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +48,7 @@ class _HomeViewClienteState extends State<HomeViewCliente> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (index) => cambiarTab(index),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryBlue,
         unselectedItemColor: Colors.grey,

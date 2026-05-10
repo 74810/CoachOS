@@ -98,7 +98,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-flutter_launcher_icons:
+flutter_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/CoachOSIcon.png"
+  min_sdk_android: 21 

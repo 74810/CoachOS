@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coach_os_app/models/cliente_model.dart';
-import 'package:coach_os_app/models/ejercicio_model.dart';
 import 'package:coach_os_app/models/tarifa_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

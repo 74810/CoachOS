@@ -67,7 +67,7 @@ class _LoginViewState extends State<LoginView> {
                       var user = await _authService.signIn(email, password);
                       if(user != null){
                         print("Login correcto: ${user.uid}"); 
-                          Navigator.pushReplacementNamed(context, '/');
+                          //Navigator.pushReplacementNamed(context, '/');
                       }else{
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Error, credenciales incorrectas'))
