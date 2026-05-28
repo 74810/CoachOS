@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../services/chat_service.dart';
 import '../../../../models/mensaje_model.dart';
 import '../../../../config/theme.dart';
 import '../perfilUsuario_view.dart';
 
 class ChatView extends StatefulWidget {
-  final String receptorId; 
-  final String nombreReceptor; 
+  final String receptorId;
+  final String nombreReceptor;
   final bool esPantallaCompleta;
 
   const ChatView({
@@ -35,9 +35,7 @@ class _ChatViewState extends State<ChatView> {
 
     try {
       await _chatService.enviarMensaje(widget.receptorId, texto);
-    } catch (e) {
-      print("LOG: Error crítico al enviar: $e");
-    }
+    } catch (_) {}
   }
 
   @override
@@ -113,7 +111,15 @@ class _ChatViewState extends State<ChatView> {
         ),
         
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: EdgeInsets.fromLTRB(
+            12,
+            10,
+            12,
+            // padding extra para el indicador home en modo embebido
+            widget.esPantallaCompleta
+                ? 10
+                : 10 + MediaQuery.of(context).padding.bottom,
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, -2))]

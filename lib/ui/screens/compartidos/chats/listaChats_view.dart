@@ -51,7 +51,10 @@ class _ChatsViewState extends State<ChatsView> {
               if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CupertinoActivityIndicator());
               if (!snapshot.hasData || snapshot.data!.isEmpty) return _buildEstadoVacio();
 
-              var clientesConChat = snapshot.data!.where((c) => c.ultimoMensaje.isNotEmpty).toList();
+              // Solo clientes activos (excluye leads que están en "Interesados")
+              var clientesConChat = snapshot.data!
+                  .where((c) => c.ultimoMensaje.isNotEmpty && c.estadoOnboarding != 'lead')
+                  .toList();
               
               if (_searchQueryChats.isNotEmpty) {
                 clientesConChat = clientesConChat.where((c) => c.nombre.toLowerCase().contains(_searchQueryChats)).toList();

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/rutina_model.dart'; 
+import '../../../../models/rutina_model.dart';
 import '../../../../config/theme.dart';
 
 class BibliotecaRutinasView extends StatelessWidget {
@@ -126,7 +126,7 @@ class BibliotecaRutinasView extends StatelessWidget {
   }
 }
 
-//MODAL PARA CREAR/EDITAR LA PLANTILLA
+// modal crear / editar plantilla
 class _ModalNuevaPlantilla extends StatefulWidget {
   final Rutina? plantillaEdit;
   const _ModalNuevaPlantilla({this.plantillaEdit});
@@ -179,9 +179,7 @@ class _ModalNuevaPlantillaState extends State<_ModalNuevaPlantilla> {
       }
       
       if (mounted) Navigator.pop(context);
-    } catch (e) {
-      print("Error guardando plantilla: $e");
-    }
+    } catch (_) {}
   }
 
   @override

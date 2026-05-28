@@ -19,62 +19,68 @@ class EntrenoCliente extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text("Mi Entrenamiento", style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('usuarios')
-            .doc(user.uid)
-            .collection('rutinas')
-            .orderBy('fecha_creacion', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CupertinoActivityIndicator(radius: 15));
-          }
+      backgroundColor: AppTheme.lightBlue,
+      body: SafeArea(
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('usuarios')
+              .doc(user.uid)
+              .collection('rutinas')
+              .orderBy('fecha_creacion', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CupertinoActivityIndicator(radius: 15));
+            }
 
-          // PANTALLA VACÍA PREMIUM
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+            final rutinas = snapshot.hasData
+                ? snapshot.data!.docs.map((doc) => Rutina.fromFirestore(doc)).toList()
+                : <Rutina>[];
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 40),
+              children: [
+                const Text('Mi Entrenamiento',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+                const SizedBox(height: 24),
+
+                if (rutinas.isEmpty)
                   Container(
-                    padding: const EdgeInsets.all(30),
+                    padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: AppTheme.lightBlue.withOpacity(0.3),
-                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
                     ),
-                    child: const Icon(Icons.directions_run_rounded, size: 60, color: AppTheme.primaryBlue),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: const BoxDecoration(color: AppTheme.lightBlue, shape: BoxShape.circle),
+                          child: const Icon(CupertinoIcons.flame_fill, size: 40, color: AppTheme.primaryBlue),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('¡Día de descanso!',
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+                        const SizedBox(height: 8),
+                        Text('Tu entrenador aún no te ha asignado nuevas rutinas.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14, height: 1.4)),
+                      ],
+                    ),
+                  )
+                else ...[
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 12),
+                    child: Text('RUTINAS ACTIVAS',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 1)),
                   ),
-                  const SizedBox(height: 24),
-                  const Text("¡Día de descanso!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
-                  const SizedBox(height: 10),
-                  const Text("Tu entrenador aún no te ha\nasignado nuevas rutinas.", 
-                    textAlign: TextAlign.center, 
-                    style: TextStyle(color: Colors.grey, fontSize: 16, height: 1.4)
-                  ),
+                  ...rutinas.map((r) => _buildCardRutinaCliente(r)),
                 ],
-              ),
+              ],
             );
-          }
-
-          final rutinas = snapshot.data!.docs.map((doc) => Rutina.fromFirestore(doc)).toList();
-
-          return ListView.builder(
-            padding: const EdgeInsets.only(top: 20, left: 16, right: 16, bottom: 40),
-            itemCount: rutinas.length,
-            itemBuilder: (context, index) {
-              return _buildCardRutinaCliente(rutinas[index]);
-            },
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -156,9 +162,8 @@ class EntrenoCliente extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppTheme.lightBlue.withOpacity(0.4),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200)
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

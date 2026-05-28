@@ -23,6 +23,7 @@ class _PerfilEditViewState extends State<PerfilEditView> {
   
   // Exclusivos Entrenador
   final TextEditingController _descController = TextEditingController();
+  final TextEditingController _paypalLinkController = TextEditingController();
   TimeOfDay _inicio = const TimeOfDay(hour: 9, minute: 30);
   TimeOfDay _fin = const TimeOfDay(hour: 21, minute: 30);
 
@@ -56,6 +57,7 @@ class _PerfilEditViewState extends State<PerfilEditView> {
           
           if (_esEntrenador) {
             _descController.text = data['descripcion'] ?? "";
+            _paypalLinkController.text = data['paypal_link'] ?? "";
             if (data['horario_inicio_h'] != null) {
               _inicio = TimeOfDay(hour: data['horario_inicio_h'], minute: data['horario_inicio_m']);
               _fin = TimeOfDay(hour: data['horario_fin_h'], minute: data['horario_fin_m']);
@@ -88,6 +90,7 @@ class _PerfilEditViewState extends State<PerfilEditView> {
 
       if (_esEntrenador) {
         dataToUpdate['descripcion'] = _descController.text;
+        dataToUpdate['paypal_link'] = _paypalLinkController.text.trim();
         dataToUpdate['horario'] = "De ${_inicio.format(context)} a ${_fin.format(context)}";
         dataToUpdate['horario_inicio_h'] = _inicio.hour;
         dataToUpdate['horario_inicio_m'] = _inicio.minute;
@@ -139,6 +142,16 @@ class _PerfilEditViewState extends State<PerfilEditView> {
                 const SizedBox(height: 30),
                 _sectionTitle("HORARIO DE ATENCIÓN"),
                 _buildHorarioCard(),
+                const SizedBox(height: 30),
+                _sectionTitle("COBROS A CLIENTES"),
+                _buildTextField("Link de PayPal.Me (ej: paypal.me/tunombre)", _paypalLinkController, icon: CupertinoIcons.creditcard),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 4),
+                  child: Text(
+                    'Tus clientes podrán pagarte directamente desde la app. El dinero va directo a tu cuenta de PayPal.',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  ),
+                ),
               ] else ...[
                 const SizedBox(height: 30),
                 _sectionTitle("DATOS CLÍNICOS Y FÍSICOS"),

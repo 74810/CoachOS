@@ -3,16 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Dieta {
   final String id;
   final String titulo;
+  // macros | cerrada | porciones
   final String tipo;
   final String notasGenerales;
 
-  // --- CAMPOS PARA TIPO 'MACROS' ---
+  // campos exclusivos de tipo macros
   final int? kcal;
   final int? proteina;
   final int? carbos;
   final int? grasas;
 
-  // --- CAMPOS PARA TIPO 'CERRADA' o 'PORCIONES' ---
+  // campo exclusivo de tipo cerrada y porciones
   final List<Comida>? comidas;
 
   Dieta({
@@ -27,10 +28,8 @@ class Dieta {
     this.comidas,
   });
 
-  // Convertir de Firebase a la App
   factory Dieta.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    
     return Dieta(
       id: doc.id,
       titulo: data['titulo'] ?? 'Sin título',
@@ -40,13 +39,12 @@ class Dieta {
       proteina: data['proteina'],
       carbos: data['carbos'],
       grasas: data['grasas'],
-      comidas: data['comidas'] != null 
+      comidas: data['comidas'] != null
           ? (data['comidas'] as List).map((c) => Comida.fromMap(c as Map<String, dynamic>)).toList()
           : null,
     );
   }
 
-  // Convertir de la App a Firebase
   Map<String, dynamic> toMap() {
     return {
       'titulo': titulo,
@@ -62,7 +60,7 @@ class Dieta {
 }
 
 class Comida {
-  String nombre; 
+  String nombre;
   List<String> elementos;
 
   Comida({

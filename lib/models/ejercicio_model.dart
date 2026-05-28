@@ -7,9 +7,9 @@ class Ejercicio {
   final String categoria;
 
   Ejercicio({
-    required this.id, 
-    required this.nombre, 
-    required this.musculo, 
+    required this.id,
+    required this.nombre,
+    required this.musculo,
     required this.material,
     required this.tipo,
     required this.categoria,

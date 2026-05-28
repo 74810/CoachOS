@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:coach_os_app/services/auth_wrapper.dart';
 import 'package:coach_os_app/ui/screens/coach/home_view.dart';
 import 'package:coach_os_app/ui/screens/login_view.dart';
@@ -8,17 +8,11 @@ import 'firebase_options.dart';
 import 'config/theme.dart';
 
 void main() async {
-  // Asegura que los widgets de Flutter estén listos
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Inicializa la conexión con Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
   await FirebaseAuth.instance.signOut();
-
-  // Arrancamos la App limpia
   runApp(const MyApp());
 }
 
@@ -31,7 +25,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'CoachOS',
       theme: AppTheme.getTheme(),
-      home: const AuthWrapper(), 
+      // AuthWrapper decide a qué entorno redirigir según el rol
+      home: const AuthWrapper(),
       routes: {
         '/login': (context) => const LoginView(),
         '/home': (context) => const HomeView(),

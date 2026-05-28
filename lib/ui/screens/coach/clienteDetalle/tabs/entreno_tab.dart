@@ -61,7 +61,7 @@ class EntrenoTab extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("RUTINAS ASIGNADAS", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                const Text("RUTINAS ASIGNADAS", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
                 CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: () => _abrirConfigurador(context),
@@ -77,30 +77,131 @@ class EntrenoTab extends StatelessWidget {
   }
 
   Widget _buildCardRutina(BuildContext context, Rutina rutina) {
-    return Card(
+    return _CardRutina(
+      rutina: rutina,
+      onEditar: () => _abrirConfigurador(context, rutinaExistente: rutina),
+      onBorrar: () => _borrarRutina(context, rutina.id),
+    );
+  }
+}
+
+class _CardRutina extends StatefulWidget {
+  final Rutina rutina;
+  final VoidCallback onEditar;
+  final VoidCallback onBorrar;
+  const _CardRutina({required this.rutina, required this.onEditar, required this.onBorrar});
+
+  @override
+  State<_CardRutina> createState() => _CardRutinaState();
+}
+
+class _CardRutinaState extends State<_CardRutina> {
+  bool _expandido = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
       margin: const EdgeInsets.only(top: 12),
-      child: ExpansionTile(
-        title: Text(rutina.titulo, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
-        subtitle: Text("${rutina.ejercicios.length} ejercicios"),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: ExpansionTile(
+          collapsedBackgroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          onExpansionChanged: (v) => setState(() => _expandido = v),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryOrange.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(CupertinoIcons.flame_fill, color: AppTheme.secondaryOrange, size: 20),
+          ),
+          title: Text(widget.rutina.titulo, style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryBlue, fontSize: 15)),
+          subtitle: Text('${widget.rutina.ejercicios.length} ejercicios',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(icon: Icon(CupertinoIcons.pencil, color: AppTheme.primaryBlue.withOpacity(0.7), size: 20), onPressed: widget.onEditar),
+              IconButton(icon: const Icon(CupertinoIcons.trash, color: Colors.redAccent, size: 18), onPressed: widget.onBorrar),
+              AnimatedRotation(
+                turns: _expandido ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(CupertinoIcons.chevron_down, size: 15, color: Colors.grey.shade400),
+              ),
+            ],
+          ),
           children: [
-            IconButton(icon: const Icon(Icons.edit_outlined, color: Colors.blue, size: 20), onPressed: () => _abrirConfigurador(context, rutinaExistente: rutina)),
-            IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20), onPressed: () => _borrarRutina(context, rutina.id)),
+            if (widget.rutina.notas.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.lightBlue.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.1)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(CupertinoIcons.info_circle_fill, color: AppTheme.primaryBlue, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(widget.rutina.notas,
+                          style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey.shade700)),
+                    ),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Column(
+                children: widget.rutina.ejercicios.map((ej) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightBlue.withOpacity(0.35),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(CupertinoIcons.bolt_fill, size: 14, color: AppTheme.secondaryOrange),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ej.nombre, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
+                              if (ej.notaEjercicio.isNotEmpty)
+                                Text(ej.notaEjercicio, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryBlue,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text('${ej.series}×${ej.repeticiones}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ),
+                )).toList(),
+              ),
+            ),
           ],
         ),
-        children: [
-          if (rutina.notas.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text("Nota: ${rutina.notas}", style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey, fontSize: 13)),
-            ),
-          ...rutina.ejercicios.map((ej) => ListTile(
-            title: Text(ej.nombre, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-            subtitle: ej.notaEjercicio.isNotEmpty ? Text(ej.notaEjercicio, style: const TextStyle(fontSize: 12)) : null,
-            trailing: Text("${ej.series}x${ej.repeticiones}", style: const TextStyle(color: AppTheme.secondaryOrange, fontWeight: FontWeight.bold)),
-          )).toList(),
-        ],
       ),
     );
   }
@@ -132,7 +233,7 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
     }
   }
 
-  //IMPORTAR DE LA BIBLIOTECA
+  // importar plantilla desde la biblioteca del coach
   void _abrirSelectorBiblioteca() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -174,7 +275,6 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
                           title: Text(data['titulo'] ?? 'Sin título', style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text("${(data['ejercicios'] as List).length} ejercicios"),
                           onTap: () {
-                            // Rellenar formulario con la plantilla elegida
                             setState(() {
                               _tituloController.text = data['titulo'] ?? '';
                               _notasGeneralesController.text = data['notas'] ?? '';
@@ -182,7 +282,7 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
                                   .map((e) => EjercicioAsignado.fromMap(e as Map<String, dynamic>))
                                   .toList();
                             });
-                            Navigator.pop(context); // Cierra el menú de plantillas
+                            Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text("✅ Plantilla cargada."), backgroundColor: Colors.green),
                             );
@@ -201,13 +301,7 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
   }
 
   Future<void> _guardar() async {
-    print("--- INTENTANDO GUARDAR ---");
-    if (_tituloController.text.isEmpty || ejerciciosSeleccionados.isEmpty) { 
-      print("Faltan datos");
-      return;
-    }
-
-    print("ID del cliente destino: ${widget.cliente.id}");
+    if (_tituloController.text.isEmpty || ejerciciosSeleccionados.isEmpty) return;
 
     final data = {
       'titulo': _tituloController.text,
@@ -223,7 +317,6 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
             .collection('rutinas')
             .doc(widget.rutinaEdit!.id)
             .update(data);
-        print("ACTUALIZADO CON ÉXITO EN FIREBASE");
       } else {
         await FirebaseFirestore.instance
             .collection('usuarios')
@@ -233,16 +326,13 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
               ...data,
               'fecha_creacion': FieldValue.serverTimestamp(),
             });
-        print("GUARDADO CON ÉXITO EN FIREBASE");
       }
           
       if (mounted) {
         Navigator.pop(context);
       }
       
-    } catch (e) {
-      print("ERROR AL GUARDAR: $e");
-    }
+    } catch (_) {}
   }
 
   @override
@@ -260,7 +350,7 @@ class _ModalNuevaRutinaState extends State<_ModalNuevaRutina> {
             ],
           ),
           
-          //IMPORTAR PLANTILLA
+          // importar plantilla
           if (widget.rutinaEdit == null) ...[
             const SizedBox(height: 10),
             CupertinoButton(

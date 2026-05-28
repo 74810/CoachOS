@@ -64,7 +64,6 @@ class _ChatClienteViewState extends State<ChatCliente> {
     }
   }
 
-  // --- ENVIAR MENSAJE ---
   void _enviarMensaje() async {
     final texto = _mensajeController.text.trim();
     if (texto.isEmpty || _entrenadorId == null) return;

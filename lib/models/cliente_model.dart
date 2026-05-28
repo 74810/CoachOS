@@ -13,10 +13,12 @@ class Cliente {
   final String lesionesPrevias;
   final String patologias;
   final String ultimoMensaje;
-  final DateTime fechaUltimoMensaje; 
-  final DateTime fechaUltimoPago; 
+  final DateTime fechaUltimoMensaje;
+  final DateTime fechaUltimoPago;
   final int precioTarifa;
   final String tipoTarifa;
+  // lead | activo
+  final String estadoOnboarding;
 
   Cliente({
     required this.id,
@@ -35,6 +37,7 @@ class Cliente {
     required this.fechaUltimoPago,
     required this.precioTarifa,
     required this.tipoTarifa,
+    this.estadoOnboarding = 'activo',
   });
 
   factory Cliente.fromFirestore(Map<String, dynamic> data, String id) {
@@ -48,8 +51,8 @@ class Cliente {
       }
     }
 
-    // Extraemos la fecha real de pago (por defecto hace 31 días si nunca pagó)
-    DateTime fechaPagoParseada = DateTime.now().subtract(const Duration(days: 31)); 
+    // sin registro de pago → se asume 31 días vencido
+    DateTime fechaPagoParseada = DateTime.now().subtract(const Duration(days: 31));
     var fechaPagoData = data['fecha_ultimo_pago'];
     if (fechaPagoData != null && fechaPagoData is Timestamp) {
       fechaPagoParseada = fechaPagoData.toDate();
@@ -58,7 +61,7 @@ class Cliente {
     return Cliente(
       id: id,
       nombre: data['nombre'] ?? '',
-      apellidos: data['apellidos'] ?? '', 
+      apellidos: data['apellidos'] ?? '',
       edad: data['edad'] ?? 0,
       telefono: data['telefono'] ?? '',
       estado: data['estado'] ?? 'Activo',
@@ -68,20 +71,21 @@ class Cliente {
       lesionesPrevias: data['lesiones_previas'] ?? '',
       patologias: data['patologias'] ?? '',
       ultimoMensaje: data['ultimo_mensaje'] ?? '',
-      fechaUltimoMensaje: fechaParseada, 
+      fechaUltimoMensaje: fechaParseada,
       fechaUltimoPago: fechaPagoParseada,
       precioTarifa: data['precio_tarifa'] ?? 0,
       tipoTarifa: data['tipo_tarifa'] ?? '',
+      estadoOnboarding: data['estado_onboarding'] ?? 'activo',
     );
   }
 
   double get precioTarifaDouble => precioTarifa.toDouble();
 
-  // LÓGICA MAESTRA DEL SEMÁFORO (Unificada para toda la app)
+  // semáforo unificado: activo | aviso | inactivo
   String get estadoSuscripcionReal {
     int diasDesdePago = DateTime.now().difference(fechaUltimoPago).inDays;
-    if (diasDesdePago < 30) return 'activo'; 
+    if (diasDesdePago < 30) return 'activo';
     if (diasDesdePago <= 33) return 'aviso';
-    return 'inactivo';                       
+    return 'inactivo';
   }
 }

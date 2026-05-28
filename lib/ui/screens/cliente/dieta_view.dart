@@ -17,90 +17,135 @@ class DietaCliente extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text("Mi Nutrición", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('usuarios')
-            .doc(user.uid)
-            .collection('dietas')
-            .orderBy('fecha_creacion', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CupertinoActivityIndicator());
+      backgroundColor: AppTheme.lightBlue,
+      body: SafeArea(
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('usuarios')
+              .doc(user.uid)
+              .collection('dietas')
+              .orderBy('fecha_creacion', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CupertinoActivityIndicator());
+            }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.restaurant_menu, size: 80, color: Colors.grey.shade300),
-                  const SizedBox(height: 16),
-                  const Text("Tu entrenador aún no te ha\nasignado una dieta.", 
-                    textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
+            final dietas = snapshot.hasData
+                ? snapshot.data!.docs.map((doc) => Dieta.fromFirestore(doc)).toList()
+                : <Dieta>[];
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 40),
+              children: [
+                const Text('Mi Nutrición',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+                const SizedBox(height: 24),
+
+                if (dietas.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.lightBlue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(CupertinoIcons.doc_text_fill, size: 40, color: AppTheme.primaryBlue),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Sin plan asignado',
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+                        const SizedBox(height: 8),
+                        Text('Tu entrenador aún no te ha asignado ningún plan de nutrición.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14, height: 1.4)),
+                      ],
+                    ),
+                  )
+                else ...[
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 12),
+                    child: Text('PLANES ASIGNADOS',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 1)),
+                  ),
+                  ...dietas.map((d) => _buildCardDietaCliente(d)),
                 ],
-              ),
+              ],
             );
-          }
-
-          final dietas = snapshot.data!.docs.map((doc) => Dieta.fromFirestore(doc)).toList();
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: dietas.length,
-            itemBuilder: (context, index) {
-              return _buildCardDietaCliente(dietas[index]);
-            },
-          );
-        },
+          },
+        ),
       ),
     );
   }
 
   //TARJETA PRINCIPAL DESPLEGABLE
   Widget _buildCardDietaCliente(Dieta dieta) {
+    final IconData icono = dieta.tipo == 'macros' ? CupertinoIcons.chart_pie_fill : CupertinoIcons.square_list_fill;
+    final String subtitulo = dieta.tipo == 'macros'
+        ? 'Objetivos Diarios (IIFYM)'
+        : (dieta.tipo == 'cerrada' ? 'Menú Cerrado' : 'Dieta por Porciones');
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: ExpansionTile(
-        initiallyExpanded: true, 
-        tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: Colors.green.withOpacity(0.1),
-          child: Icon(dieta.tipo == 'macros' ? Icons.pie_chart : Icons.restaurant, color: Colors.green),
-        ),
-        title: Text(dieta.titulo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryBlue)),
-        subtitle: Text(
-          dieta.tipo == 'macros' ? 'Objetivos Diarios (IIFYM)' : (dieta.tipo == 'cerrada' ? 'Menú Cerrado' : 'Dieta por Porciones'), 
-          style: const TextStyle(color: Colors.grey, fontSize: 12)
-        ),
-        children: [
-          if (dieta.notasGenerales.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-              child: Text("Nota del Coach: ${dieta.notasGenerales}", style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          collapsedBackgroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          leading: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryOrange.withOpacity(0.12),
+              shape: BoxShape.circle,
             ),
-          
-          if (dieta.tipo == 'macros') 
-            _buildVistaMacros(dieta)
-          else 
-            _buildVistaComidas(dieta),
-          
-          const SizedBox(height: 16),
-        ],
+            child: Icon(icono, color: AppTheme.secondaryOrange, size: 22),
+          ),
+          title: Text(dieta.titulo,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppTheme.primaryBlue)),
+          subtitle: Text(subtitulo,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w500)),
+          children: [
+            if (dieta.notasGenerales.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.lightBlue.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.1)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(CupertinoIcons.info_circle_fill, color: AppTheme.primaryBlue, size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text('${dieta.notasGenerales}',
+                          style: const TextStyle(fontSize: 13, height: 1.4, color: AppTheme.primaryBlue, fontWeight: FontWeight.w500)),
+                    ),
+                  ],
+                ),
+              ),
+            if (dieta.tipo == 'macros') _buildVistaMacros(dieta) else _buildVistaComidas(dieta),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
@@ -150,24 +195,34 @@ class DietaCliente extends StatelessWidget {
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200)
+            color: AppTheme.lightBlue.withOpacity(0.35),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(comida.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
-              const Divider(),
+              Row(
+                children: [
+                  const Icon(CupertinoIcons.clock_fill, size: 14, color: AppTheme.secondaryOrange),
+                  const SizedBox(width: 6),
+                  Text(comida.nombre,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.primaryBlue)),
+                ],
+              ),
+              const SizedBox(height: 10),
               ...comida.elementos.map((item) => Padding(
-                padding: const EdgeInsets.only(top: 6),
+                padding: const EdgeInsets.only(bottom: 5),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("• ", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
-                    Expanded(child: Text(item, style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.3))),
+                    Container(
+                      width: 6, height: 6,
+                      margin: const EdgeInsets.only(top: 5, right: 8),
+                      decoration: const BoxDecoration(color: AppTheme.secondaryOrange, shape: BoxShape.circle),
+                    ),
+                    Expanded(child: Text(item, style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.4))),
                   ],
                 ),
               )).toList(),

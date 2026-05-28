@@ -7,7 +7,6 @@ class Mensaje {
 
   Mensaje({required this.emisorId, required this.texto, required this.fecha});
 
-  // Convertir de Firebase a objeto Dart
   factory Mensaje.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map;
     return Mensaje(

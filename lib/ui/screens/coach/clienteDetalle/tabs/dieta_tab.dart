@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../../models/cliente_model.dart'; 
-import '../../../../../models/dieta_model.dart';   
-import '../../../../../config/theme.dart';         
+import '../../../../../models/cliente_model.dart';
+import '../../../../../models/dieta_model.dart';
+import '../../../../../config/theme.dart';
 
 class DietaTab extends StatelessWidget {
   final Cliente cliente;
@@ -62,11 +62,11 @@ class DietaTab extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("DIETAS ASIGNADAS", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                const Text("DIETAS ASIGNADAS", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
                 CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: () => _abrirConfigurador(context),
-                  child: const Text("+ Nueva Dieta", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  child: const Text("+ Nueva Dieta", style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -83,46 +83,96 @@ class DietaTab extends StatelessWidget {
   }
 
   Widget _buildCardDieta(BuildContext context, Dieta dieta) {
-    return Card(
+    return _CardDieta(
+      dieta: dieta,
+      onEditar: () => _abrirConfigurador(context, dietaExistente: dieta),
+      onBorrar: () => _borrarDieta(context, dieta.id),
+    );
+  }
+}
+
+class _CardDieta extends StatefulWidget {
+  final Dieta dieta;
+  final VoidCallback onEditar;
+  final VoidCallback onBorrar;
+  const _CardDieta({required this.dieta, required this.onEditar, required this.onBorrar});
+
+  @override
+  State<_CardDieta> createState() => _CardDietaState();
+}
+
+class _CardDietaState extends State<_CardDieta> {
+  bool _expandido = false;
+
+  @override
+  Widget build(BuildContext context) => _buildCardDietaInner(context);
+
+  Widget _buildCardDietaInner(BuildContext context) {
+    final dieta = widget.dieta;
+    final IconData icono = dieta.tipo == 'macros' ? CupertinoIcons.chart_pie_fill : CupertinoIcons.square_list_fill;
+    return Container(
       margin: const EdgeInsets.only(top: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: CircleAvatar(
-          backgroundColor: Colors.green.withOpacity(0.1),
-          child: Icon(dieta.tipo == 'macros' ? Icons.pie_chart : Icons.restaurant_menu, color: Colors.green, size: 20),
-        ),
-        title: Text(dieta.titulo, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
-        subtitle: Text("Tipo: ${dieta.tipo.toUpperCase()}", style: const TextStyle(fontSize: 12)),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: ExpansionTile(
+          collapsedBackgroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          onExpansionChanged: (v) => setState(() => _expandido = v),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryOrange.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icono, color: AppTheme.secondaryOrange, size: 20),
+          ),
+          title: Text(dieta.titulo, style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryBlue, fontSize: 15)),
+          subtitle: Text(dieta.tipo.toUpperCase(), style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(icon: Icon(CupertinoIcons.pencil, color: AppTheme.primaryBlue.withOpacity(0.7), size: 20), onPressed: widget.onEditar),
+              IconButton(icon: const Icon(CupertinoIcons.trash, color: Colors.redAccent, size: 18), onPressed: widget.onBorrar),
+              AnimatedRotation(
+                turns: _expandido ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(CupertinoIcons.chevron_down, size: 15, color: Colors.grey.shade400),
+              ),
+            ],
+          ),
           children: [
-            IconButton(icon: const Icon(Icons.edit_outlined, color: Colors.blue, size: 20), onPressed: () => _abrirConfigurador(context, dietaExistente: dieta)),
-            IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20), onPressed: () => _borrarDieta(context, dieta.id)),
-            const Icon(Icons.expand_more, color: Colors.grey),
+            if (dieta.notasGenerales.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.lightBlue.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.1)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(CupertinoIcons.info_circle_fill, color: AppTheme.primaryBlue, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(dieta.notasGenerales,
+                          style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey.shade700)),
+                    ),
+                  ],
+                ),
+              ),
+            if (dieta.tipo == 'macros') _buildDetalleMacros(dieta) else _buildDetalleComidas(dieta),
+            const SizedBox(height: 12),
           ],
         ),
-        children: [
-          // Mostrar Notas Generales si existen
-          if (dieta.notasGenerales.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text("Nota: ${dieta.notasGenerales}", style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
-              ),
-            ),
-
-          // MOSTRAR CONTENIDO SEGÚN EL TIPO
-          if (dieta.tipo == 'macros') 
-            _buildDetalleMacros(dieta)
-          else 
-            _buildDetalleComidas(dieta),
-          
-          const SizedBox(height: 10),
-        ],
       ),
     );
   }
@@ -153,12 +203,33 @@ class DietaTab extends StatelessWidget {
 
   Widget _buildDetalleComidas(Dieta dieta) {
     if (dieta.comidas == null) return const SizedBox();
-    return Column(
-      children: dieta.comidas!.map((comida) => ListTile(
-        dense: true,
-        title: Text(comida.nombre, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-        subtitle: Text(comida.elementos.join(", "), maxLines: 2, overflow: TextOverflow.ellipsis),
-      )).toList(),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      child: Column(
+        children: dieta.comidas!.map((comida) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 6, height: 6,
+                margin: const EdgeInsets.only(top: 5, right: 8),
+                decoration: const BoxDecoration(color: AppTheme.secondaryOrange, shape: BoxShape.circle),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(comida.nombre, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.primaryBlue)),
+                    Text(comida.elementos.join(', '), maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        )).toList(),
+      ),
     );
   }
 }
@@ -181,7 +252,7 @@ class _ModalNuevaDietaCliente extends StatefulWidget {
 class _ModalNuevaDietaClienteState extends State<_ModalNuevaDietaCliente> {
   final TextEditingController _tituloController = TextEditingController();
   final TextEditingController _notasController = TextEditingController();
-  String _tipoSeleccionado = 'cerrada'; 
+  String _tipoSeleccionado = 'cerrada';
 
   final TextEditingController _kcalController = TextEditingController();
   final TextEditingController _proController = TextEditingController();
@@ -305,9 +376,7 @@ class _ModalNuevaDietaClienteState extends State<_ModalNuevaDietaCliente> {
         await FirebaseFirestore.instance.collection('usuarios').doc(widget.cliente.id).collection('dietas').add(data);
       }
       if (mounted) Navigator.pop(context);
-    } catch (e) {
-      print("Error guardando dieta al cliente: $e");
-    }
+    } catch (_) {}
   }
 
   @override
@@ -438,7 +507,7 @@ class _ModalNuevaDietaClienteState extends State<_ModalNuevaDietaCliente> {
                   ),
                   TextField(
                     controller: ctrl.elementosCtrl,
-                    maxLines: null, 
+                    maxLines: null,
                     decoration: const InputDecoration(hintText: "Escribe los alimentos (uno por línea)", hintStyle: TextStyle(fontSize: 12)),
                   ),
                 ],

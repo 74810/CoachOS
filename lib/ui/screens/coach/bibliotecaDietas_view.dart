@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../../models/dieta_model.dart'; 
-import '../../../../config/theme.dart';  
+import '../../../../models/dieta_model.dart';
+import '../../../../config/theme.dart';
 
 class BibliotecaDietasView extends StatelessWidget {
   const BibliotecaDietasView({super.key});
@@ -145,15 +145,13 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
   final TextEditingController _tituloController = TextEditingController();
   final TextEditingController _notasController = TextEditingController();
   
-  String _tipoSeleccionado = 'cerrada'; 
+  String _tipoSeleccionado = 'cerrada';
 
-  // Controladores para Macros
   final TextEditingController _kcalController = TextEditingController();
   final TextEditingController _proController = TextEditingController();
   final TextEditingController _carbosController = TextEditingController();
   final TextEditingController _grasasController = TextEditingController();
 
-  // Controladores para Menú/Porciones
   List<_ComidaController> _comidasControllers = [];
 
   @override
@@ -188,7 +186,6 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
     List<Comida>? comidasFinales;
     if (_tipoSeleccionado != 'macros') {
       comidasFinales = _comidasControllers.map((c) {
-        // Separar el texto largo por saltos de línea en una lista real
         List<String> items = c.elementosCtrl.text.split('\n').where((s) => s.trim().isNotEmpty).toList();
         return Comida(nombre: c.nombreCtrl.text, elementos: items);
       }).toList();
@@ -213,9 +210,7 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
         await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).collection('biblioteca_dietas').add(data);
       }
       if (mounted) Navigator.pop(context);
-    } catch (e) {
-      print("Error: $e");
-    }
+    } catch (_) {}
   }
 
   @override
@@ -236,7 +231,7 @@ class _ModalNuevaPlantillaDietaState extends State<_ModalNuevaPlantillaDieta> {
           TextField(controller: _tituloController, decoration: const InputDecoration(labelText: "Nombre de la dieta (Ej: Volumen 3000 Kcal)")),
           
           const SizedBox(height: 16),
-          // EL SELECTOR DE TIPO
+          // selector de tipo
           SizedBox(
             width: double.infinity,
             child: CupertinoSegmentedControl<String>(

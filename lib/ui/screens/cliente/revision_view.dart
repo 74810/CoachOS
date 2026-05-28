@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../models/revision_model.dart';
+import '../../../config/theme.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -38,15 +39,20 @@ class RevisionCliente extends StatelessWidget {
     if (user == null) return const Scaffold(body: Center(child: Text("Error: No hay usuario logueado")));
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text("Mis Revisiones", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: Column(
+      backgroundColor: AppTheme.lightBlue,
+      body: SafeArea(
+        child: Column(
         children: [
+          // TÍTULO DE PÁGINA
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 28, 20, 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Mis Revisiones',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+            ),
+          ),
+
           // PANEL SUPERIOR CON TEMPORIZADOR Y BLOQUEO
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance.collection('usuarios').doc(user.uid).snapshots(),
@@ -65,10 +71,23 @@ class RevisionCliente extends StatelessWidget {
 
               if (nombrePlantilla == null || parametros.isEmpty) {
                 return Container(
-                  margin: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
-                  child: const Center(child: Text("Tu entrenador aún no te ha asignado\nuna plantilla de revisión.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey))),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(CupertinoIcons.doc_chart_fill, color: AppTheme.primaryBlue, size: 32),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text('Tu entrenador aún no te ha asignado una plantilla de revisión.',
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14, height: 1.4)),
+                      ),
+                    ],
+                  ),
                 );
               }
 
@@ -79,52 +98,81 @@ class RevisionCliente extends StatelessWidget {
               DateTime fechaObjetivo = ultimaRev.add(Duration(days: frecuencia));
 
               return Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
                 ),
                 child: StreamBuilder(
                   stream: Stream.periodic(const Duration(seconds: 1)),
                   builder: (context, _) {
                     final ahora = DateTime.now();
-                    
-                    // MAGIA: Modo libre ignora el tiempo
                     final tocaRevision = esLibre || ahora.isAfter(fechaObjetivo);
                     final diferencia = esLibre ? Duration.zero : fechaObjetivo.difference(ahora);
 
                     return Column(
                       children: [
-                        const Icon(CupertinoIcons.doc_chart_fill, color: Colors.purple, size: 40),
-                        const SizedBox(height: 10),
-                        Text("Plantilla Activa: $nombrePlantilla", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: const BoxDecoration(color: AppTheme.lightBlue, shape: BoxShape.circle),
+                              child: const Icon(CupertinoIcons.doc_chart_fill, color: AppTheme.primaryBlue, size: 22),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Plantilla Activa', style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                                  Text(nombrePlantilla, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryBlue)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 16),
                         
                         if (tocaRevision) ...[
-                          Text(esLibre ? "¡Modo Libre Activado!" : "¡El formulario está abierto!", style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF34C759).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              esLibre ? '✓ Modo Libre Activado' : '✓ Formulario Abierto',
+                              style: const TextStyle(color: Color(0xFF34C759), fontWeight: FontWeight.w700, fontSize: 13),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
                             child: CupertinoButton(
-                              color: Colors.purple,
+                              color: AppTheme.primaryBlue,
+                              borderRadius: BorderRadius.circular(14),
                               onPressed: () => _abrirFormularioRevision(context, parametros),
-                              child: const Text("+ Rellenar Revisión", style: TextStyle(fontWeight: FontWeight.bold)),
+                              child: const Text('+ Rellenar Revisión', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                             ),
                           ),
                         ] else ...[
-                          const Text("Aún no es momento de subir la revisión", style: TextStyle(color: Colors.grey)),
+                          Text('Próxima revisión disponible en',
+                              style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(color: Colors.purple.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                            child: Text(
-                              "${diferencia.inDays}d ${diferencia.inHours % 24}h ${diferencia.inMinutes % 60}m ${diferencia.inSeconds % 60}s",
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.purple),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppTheme.lightBlue,
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                          )
-                        ]
+                            child: Text(
+                              '${diferencia.inDays}d  ${diferencia.inHours % 24}h  ${diferencia.inMinutes % 60}m  ${diferencia.inSeconds % 60}s',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                            ),
+                          ),
+                        ],
                       ],
                     );
                   }
@@ -148,40 +196,74 @@ class RevisionCliente extends StatelessWidget {
                 final revisiones = snapshot.data?.docs.map((doc) => Revision.fromFirestore(doc)).toList() ?? [];
 
                 if (revisiones.isEmpty) {
-                  return const Center(child: Text("Aún no has enviado ninguna revisión.", style: TextStyle(color: Colors.grey)));
+                  return Center(
+                    child: Text('Aún no has enviado ninguna revisión.',
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                  );
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
                   itemCount: revisiones.length,
                   itemBuilder: (context, index) {
                     final rev = revisiones[index];
                     final esPendiente = rev.estado == 'pendiente';
+                    final colorEstado = esPendiente ? AppTheme.secondaryOrange : const Color(0xFF34C759);
 
-                    return Card(
+                    return Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: ExpansionTile(
-                        leading: CircleAvatar(
-                          backgroundColor: esPendiente ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1),
-                          child: Icon(esPendiente ? Icons.hourglass_top : Icons.check, color: esPendiente ? Colors.orange : Colors.green),
-                        ),
-                        title: Text("Revisión del ${rev.fecha.day}/${rev.fecha.month}/${rev.fecha.year}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(esPendiente ? "Esperando respuesta del coach..." : "¡Revisada!", style: TextStyle(color: esPendiente ? Colors.orange : Colors.green, fontSize: 12)),
-                        children: [
-                          const Divider(),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("Tus Datos:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
-                                const SizedBox(height: 8),
-                                ...rev.valoresParametros.entries.map((e) => Text("• ${e.key}: ${e.value}", style: const TextStyle(fontSize: 14))),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: ExpansionTile(
+                          collapsedBackgroundColor: Colors.white,
+                          backgroundColor: Colors.white,
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          leading: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: colorEstado.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              esPendiente ? CupertinoIcons.clock_fill : CupertinoIcons.checkmark_seal_fill,
+                              color: colorEstado, size: 20,
+                            ),
+                          ),
+                          title: Text(
+                            'Revisión ${rev.fecha.day}/${rev.fecha.month}/${rev.fecha.year}',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryBlue),
+                          ),
+                          subtitle: Text(
+                            esPendiente ? 'Esperando respuesta del coach...' : '¡Revisada por tu coach!',
+                            style: TextStyle(color: colorEstado, fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('TUS DATOS', style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                                  const SizedBox(height: 8),
+                                  ...rev.valoresParametros.entries.map((e) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: Row(
+                                      children: [
+                                        Container(width: 6, height: 6, margin: const EdgeInsets.only(right: 8), decoration: const BoxDecoration(color: AppTheme.secondaryOrange, shape: BoxShape.circle)),
+                                        Text('${e.key}: ', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                        Text(e.value.toString(), style: const TextStyle(fontSize: 14)),
+                                      ],
+                                    ),
+                                  )),
                                 
                                 if (rev.fotosUrl.isNotEmpty) ...[
                                   const SizedBox(height: 16),
-                                  const Text("Tus Fotos:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
+                                  Text('FOTOS', style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w700, letterSpacing: 1)),
                                   const SizedBox(height: 8),
                                   SizedBox(
                                     height: 80,
@@ -195,7 +277,7 @@ class RevisionCliente extends StatelessWidget {
                                             onTap: () {
                                               Navigator.push(context, CupertinoPageRoute(fullscreenDialog: true, builder: (context) => VisualizadorImagen(imageUrl: rev.fotosUrl[imgIndex])));
                                             },
-                                            child: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(rev.fotosUrl[imgIndex], width: 80, height: 80, fit: BoxFit.cover)),
+                                            child: ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(rev.fotosUrl[imgIndex], width: 80, height: 80, fit: BoxFit.cover)),
                                           ),
                                         );
                                       },
@@ -204,20 +286,31 @@ class RevisionCliente extends StatelessWidget {
                                 ],
 
                                 const SizedBox(height: 16),
-                                const Text("Tus Sensaciones:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
-                                Text(rev.sensacionesCliente.isEmpty ? "No escribiste nada." : rev.sensacionesCliente, style: const TextStyle(fontStyle: FontStyle.italic)),
+                                Text('SENSACIONES', style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                                const SizedBox(height: 6),
+                                Text(rev.sensacionesCliente.isEmpty ? 'No escribiste nada.' : rev.sensacionesCliente, style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey.shade700, fontSize: 14)),
                                 
                                 if (!esPendiente && rev.respuestaCoach.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   Container(
                                     width: double.infinity,
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF34C759).withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: const Color(0xFF34C759).withOpacity(0.2)),
+                                    ),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text("Respuesta del Coach:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            const Icon(CupertinoIcons.chat_bubble_2_fill, color: Color(0xFF34C759), size: 16),
+                                            const SizedBox(width: 6),
+                                            Text('Respuesta del Coach', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700, fontSize: 13)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
                                         Text(rev.respuestaCoach),
                                       ],
                                     ),
@@ -228,13 +321,15 @@ class RevisionCliente extends StatelessWidget {
                           )
                         ],
                       ),
-                    );
+                    ),
+                  );
                   },
                 );
               },
             ),
           ),
         ],
+        ),
       ),
     );
   }

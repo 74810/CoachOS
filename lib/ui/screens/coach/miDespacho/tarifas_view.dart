@@ -94,7 +94,7 @@ class TarifasView extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              Text(tarifa.esVisible ? "Visible" : "Oculta", 
+                              Text(tarifa.esVisible ? "Visible" : "Oculta",
                                 style: TextStyle(fontSize: 12, color: tarifa.esVisible ? Colors.green : Colors.grey)),
                               const SizedBox(width: 4),
                               Transform.scale(
@@ -106,6 +106,10 @@ class TarifasView extends StatelessWidget {
                                     DatabaseService().actualizarVisibilidadTarifa(tarifa.id, val);
                                   },
                                 ),
+                              ),
+                              IconButton(
+                                icon: const Icon(CupertinoIcons.pencil, color: AppTheme.mediumBlue, size: 20),
+                                onPressed: () => _mostrarModalEditar(context, tarifa),
                               ),
                               IconButton(
                                 icon: const Icon(CupertinoIcons.trash, color: Colors.redAccent, size: 20),
@@ -218,6 +222,116 @@ class TarifasView extends StatelessWidget {
                   }
                 },
                 child: const Text("Guardar Tarifa", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _mostrarModalEditar(BuildContext context, Tarifa tarifa) {
+    final nombreController = TextEditingController(text: tarifa.nombre);
+    final precioController = TextEditingController(text: tarifa.precio.toString());
+    final descController = TextEditingController(text: tarifa.descripcion);
+    final graciaController = TextEditingController(text: tarifa.diasGracia.toString());
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 30),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Editar Tarifa", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: AppTheme.primaryBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                  child: Text(tarifa.nombre, style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildLabel("Nombre del Plan"),
+            CupertinoTextField(
+              controller: nombreController,
+              placeholder: "Ej: Plan Mensual Oro",
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppTheme.lightBlue, borderRadius: BorderRadius.circular(8)),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel("Precio (€)"),
+                      CupertinoTextField(
+                        controller: precioController,
+                        keyboardType: TextInputType.number,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: AppTheme.lightBlue, borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel("Días de Gracia"),
+                      CupertinoTextField(
+                        controller: graciaController,
+                        keyboardType: TextInputType.number,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: AppTheme.lightBlue, borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildLabel("Descripción"),
+            CupertinoTextField(
+              controller: descController,
+              placeholder: "Escribe qué incluye...",
+              maxLines: 3,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppTheme.lightBlue, borderRadius: BorderRadius.circular(8)),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryBlue,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  final nombre = nombreController.text.trim();
+                  final precio = int.tryParse(precioController.text.trim());
+                  if (nombre.isEmpty || precio == null) return;
+                  await DatabaseService().actualizarTarifa(
+                    tarifa.id,
+                    nombre,
+                    precio,
+                    descController.text.trim(),
+                    int.tryParse(graciaController.text.trim()) ?? tarifa.diasGracia,
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                },
+                child: const Text("Guardar Cambios", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ),
           ],

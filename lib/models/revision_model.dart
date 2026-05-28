@@ -1,17 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// --- 1. MODELO DE LA PLANTILLA (Lo que el Coach configura en Ajustes) ---
+// plantilla que el coach configura en su biblioteca
 class PlantillaRevision {
   final String id;
   final String titulo;
-  // Aquí guardamos los nombres exactos de lo que queremos medir.
-  // Ej: ["Peso (kg)", "Cintura (cm)", "Calidad del Sueño (1-10)"]
-  final List<String> parametros; 
+  // nombres de los parámetros a medir, ej: ["Peso (kg)", "Cintura (cm)"]
+  final List<String> parametros;
 
   PlantillaRevision({
-    required this.id, 
-    required this.titulo, 
-    required this.parametros
+    required this.id,
+    required this.titulo,
+    required this.parametros,
   });
 
   factory PlantillaRevision.fromFirestore(DocumentSnapshot doc) {
@@ -32,19 +31,17 @@ class PlantillaRevision {
   }
 }
 
-// --- 2. MODELO DE LA REVISIÓN (Lo que rellena el Cliente y contesta el Coach) ---
+// revisión rellenada por el cliente y respondida por el coach
 class Revision {
   final String id;
   final DateTime fecha;
-  
-  // Usamos un Map para emparejar el parámetro con el valor real que puso el cliente
-  // Ej: {"Peso (kg)": 80.5, "Cintura (cm)": 90.0} -> Perfecto para gráficas futuras
-  final Map<String, dynamic> valoresParametros; 
-  
-  final List<String> fotosUrl; 
-  final String sensacionesCliente; 
-  final String respuestaCoach; 
-  final String estado; // Puede ser: 'pendiente' o 'revisada'
+  // mapa parámetro → valor, ej: {"Peso (kg)": 80.5}
+  final Map<String, dynamic> valoresParametros;
+  final List<String> fotosUrl;
+  final String sensacionesCliente;
+  final String respuestaCoach;
+  // pendiente | revisada
+  final String estado;
 
   Revision({
     required this.id,
